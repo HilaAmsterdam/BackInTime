@@ -8,6 +8,7 @@
     android:background="#FAF9F6"
     tools:context=".homeFragment">
 
+
     <ImageView
         android:id="@+id/logoImage"
         android:layout_width="347dp"
@@ -25,9 +26,9 @@
         android:layout_width="180dp"
         android:layout_height="48dp"
         android:layout_marginBottom="100dp"
-        android:backgroundTint="#FAF9F6"
+        android:backgroundTint="@color/button_background"
         android:text="register"
-        android:textColor="@android:color/black"
+        android:textColor="@color/button_text"
         android:textSize="16sp"
         app:cornerRadius="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -41,9 +42,9 @@
         android:layout_width="180dp"
         android:layout_height="48dp"
         android:layout_marginBottom="100dp"
-        android:backgroundTint="#FAF9F6"
+        android:backgroundTint="@color/button_background"
         android:text="login"
-        android:textColor="@android:color/black"
+        android:textColor="@color/button_text"
         android:textSize="16sp"
         app:cornerRadius="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
