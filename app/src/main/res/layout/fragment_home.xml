@@ -6,14 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FAF9F6"
-    tools:context=".homeFragment">
+    tools:context=".HomeFragment">
 
 
     <ImageView
         android:id="@+id/logoImage"
         android:layout_width="347dp"
         android:layout_height="493dp"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="64dp"
         android:scaleType="fitCenter"
         android:src="@drawable/logo_back_in_time"
         app:layout_constraintEnd_toEndOf="parent"
@@ -21,11 +21,12 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/register"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:id="@+id/registerBtn"
+        style="@style/Widget.Material3.Button.ElevatedButton"
         android:layout_width="180dp"
         android:layout_height="48dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="64dp"
         android:backgroundTint="@color/button_background"
         android:text="register"
         android:textColor="@color/button_text"
@@ -34,14 +35,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.069"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/logoImage" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/loginButton"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:id="@+id/loginBtn"
+        style="@style/Widget.Material3.Button.ElevatedButton"
         android:layout_width="180dp"
         android:layout_height="48dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="64dp"
         android:backgroundTint="@color/button_background"
         android:text="login"
         android:textColor="@color/button_text"
@@ -50,6 +53,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.93"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/logoImage" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

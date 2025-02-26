@@ -16,8 +16,6 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        //todo : add home fragment
-        // move to the rgister and login
     }
 }
 
