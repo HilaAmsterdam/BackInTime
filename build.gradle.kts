@@ -4,7 +4,9 @@ buildscript {
         google()
     }
     dependencies {
-        classpath(libs.androidx.navigation.safe.args.gradle.plugin)
+        classpath(libs.androidx.navigation.safe.args.gradle.plugin.v250)
+        classpath(libs.google.services)
+        classpath(libs.kotlin.gradle.plugin)
     }
 }
 
@@ -12,4 +14,5 @@ buildscript {
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.google.services) apply false
 }

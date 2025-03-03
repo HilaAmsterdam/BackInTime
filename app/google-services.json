@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "692147461877",
+    "project_id": "back-in-time-61032",
+    "storage_bucket": "back-in-time-61032.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:692147461877:android:422f62b829f2a7c5606fbc",
+        "android_client_info": {
+          "package_name": "com.example.backintime"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyupqvwX-gcOVhLLhh4h3-6mO6kmYJhNQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
