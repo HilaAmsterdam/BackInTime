@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="#FAF9F6"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <RelativeLayout
+        android:id="@+id/horizontal_"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/memoryImage"
+            android:layout_width="160dp"
+            android:layout_height="140dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:scaleType="centerCrop"
+            android:contentDescription="memory image"
+            android:background="@android:color/darker_gray"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/memoryUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_toLeftOf="@id/memoryImage"
+            android:layout_marginEnd="8dp"
+            android:text="username" />
+
+        <TextView
+            android:id="@+id/memoryDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_below="@id/memoryUsername"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_toLeftOf="@id/memoryImage"
+            android:layout_marginEnd="8dp"
+            android:text="memory description" />
+
+        <TextView
+            android:id="@+id/memoryDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/memoryDescription"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_toLeftOf="@id/memoryImage"
+            android:layout_marginEnd="8dp"
+            android:textSize="14sp"
+            android:textStyle="italic"
+            android:textColor="#555"
+            android:text="memory date" />
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

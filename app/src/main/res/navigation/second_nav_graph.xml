@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+android:id="@+id/second_nav_graph"
+app:startDestination="@id/feedFragment">
+
+<fragment
+    android:id="@+id/profileFragment"
+    android:name="com.example.backintime.ui.auth.ProfileFragment"
+    android:label="fragment_profile"
+    tools:layout="@layout/fragment_profile" >
+    <action
+        android:id="@+id/action_profileFragment_to_editProfileFragment"
+        app:destination="@id/editProfileFragment" />
+</fragment>
+<fragment
+    android:id="@+id/editProfileFragment"
+    android:name="com.example.backintime.ui.auth.EditProfileFragment"
+    android:label="fragment_edit_profile"
+    tools:layout="@layout/fragment_edit_profile" />
+<fragment
+    android:id="@+id/selectedMemoryFragment2"
+    android:name="com.example.backintime.ui.post.SelectedMemoryFragment"
+    android:label="fragment_selected_memory"
+    tools:layout="@layout/fragment_selected_memory" >
+    <action
+        android:id="@+id/action_selectedMemoryFragment2_to_editMemoryFragment"
+        app:destination="@id/editMemoryFragment" />
+</fragment>
+<fragment
+    android:id="@+id/editMemoryFragment"
+    android:name="com.example.backintime.ui.post.EditMemoryFragment"
+    android:label="fragment_edit_memory"
+    tools:layout="@layout/fragment_edit_memory" />
+<fragment
+    android:id="@+id/feedFragment2"
+    android:name="com.example.backintime.ui.feed.FeedFragment"
+    android:label="fragment_feed"
+    tools:layout="@layout/fragment_feed" >
+    <action
+        android:id="@+id/action_feedFragment2_to_profileFragment"
+        app:destination="@id/profileFragment" />
+    <action
+        android:id="@+id/action_feedFragment2_to_selectedMemoryFragment2"
+        app:destination="@id/selectedMemoryFragment2" />
+</fragment>
+</navigation>
