@@ -141,7 +141,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_menu_edit"
         app:tint="#000000"
-        android:visibility="gone"/>
+        android:visibility="gone"
+/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/deleteMemoryFab"
@@ -159,6 +160,7 @@
         app:layout_constraintEnd_toStartOf="@+id/goToEditMemoryFab"
         app:srcCompat="@android:drawable/ic_menu_delete"
         app:tint="#000000"
+        android:visibility="gone"
 />
 
 
