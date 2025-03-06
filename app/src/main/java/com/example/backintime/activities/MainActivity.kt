@@ -1,33 +1,28 @@
-package com.example.backintime.activities
+package com.example.backintime
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.example.backintime.R
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import com.example.backintime.Model.FirebaseModel
 
 class MainActivity : AppCompatActivity() {
+    private val firebaseModel = FirebaseModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        // קבל את ה-NavHostFragment בצורה בטוחה
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+
+        if (navHostFragment != null) {
+            val navController: NavController = navHostFragment.navController
+
+            if (firebaseModel.isUserLoggedIn()) {
+                navController.navigate(R.id.homeFragment)
+            }
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
