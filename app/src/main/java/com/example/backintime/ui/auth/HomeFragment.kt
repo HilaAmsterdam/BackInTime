@@ -1,4 +1,4 @@
-package com.example.backintime
+package com.example.backintime.ui.auth
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
+import com.example.backintime.R
 import com.google.android.material.button.MaterialButton
 
 class HomeFragment : Fragment() {

@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FAF9F6"
-    tools:context=".HomeFragment">
+    tools:context=".ui.auth.HomeFragment">
 
 
     <ImageView
@@ -55,5 +55,7 @@
         app:layout_constraintHorizontal_bias="0.93"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/logoImage" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
