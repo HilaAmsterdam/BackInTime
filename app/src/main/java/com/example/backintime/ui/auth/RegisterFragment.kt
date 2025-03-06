@@ -24,7 +24,7 @@ class RegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val emailEditText = view.findViewById<EditText>(R.id.usernameInput)
+        val emailEditText = view.findViewById<EditText>(R.id.emailInput)
         val passwordEditText = view.findViewById<EditText>(R.id.passwordInput)
         val registerButton = view.findViewById<MaterialButton>(R.id.registerButton)
         val goToLoginFragment = view.findViewById<MaterialButton>(R.id.FromRegisterToLogInBtn)

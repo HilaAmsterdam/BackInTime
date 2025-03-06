@@ -112,10 +112,10 @@
         app:layout_constraintTop_toBottomOf="@id/profileImage">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/usernameInput"
+            android:id="@+id/emailInput"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:hint="Username"
+            android:hint="Email"
             android:textSize="18sp" />
     </com.google.android.material.textfield.TextInputLayout>
 

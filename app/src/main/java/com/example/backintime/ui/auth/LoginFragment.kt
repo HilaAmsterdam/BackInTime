@@ -1,4 +1,5 @@
-package com.example.backintime
+package com.example.backintime.ui.auth;
+
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +10,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.FirebaseModel
+import com.example.backintime.R
 import com.google.android.material.button.MaterialButton
 
 class LoginFragment : Fragment() {
@@ -24,7 +26,7 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val emailEditText = view.findViewById<EditText>(R.id.usernameInput)
+        val emailEditText = view.findViewById<EditText>(R.id.emailInput)
         val passwordEditText = view.findViewById<EditText>(R.id.passwordInput)
         val loginButton = view.findViewById<MaterialButton>(R.id.loginBtn)
         val goToRegisterFragment = view.findViewById<MaterialButton>(R.id.signUpClickable)

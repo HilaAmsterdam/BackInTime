@@ -43,14 +43,14 @@
         app:layout_constraintTop_toBottomOf="@+id/imageView">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/profileUsername_edit"
+            android:id="@+id/profileEmail_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="false"
             android:cursorVisible="false"
             android:focusable="false"
-            android:hint="Username"
-            android:text="Username"
+            android:hint="Email"
+            android:text="Email"
             android:textSize="18sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
