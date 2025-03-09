@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.post.CreateMemoryFragment"
+    tools:context=".ui.memory.CreateMemoryFragment"
     android:background="#FAF9F6">
 
     <TextView
@@ -34,12 +35,11 @@
         app:icon="@drawable/baseline_add_photo_alternate_24"
         app:iconTint="@color/button_text"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.505"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/createMemoryTitle" />
+        app:layout_constraintTop_toBottomOf="@id/createMemoryTitle" />
 
     <com.google.android.material.button.MaterialButton
-    android:id="@+id/captureMemoryButton"
+        android:id="@+id/captureMemoryButton"
         style="@style/Widget.Material3.Button.ElevatedButton"
         android:layout_width="320dp"
         android:layout_height="50dp"
@@ -53,7 +53,7 @@
         app:cornerRadius="50dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/addFromGallaryButton" />
+        app:layout_constraintTop_toBottomOf="@id/addFromGallaryButton" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/navigation"
@@ -62,12 +62,12 @@
         android:background="#FAF9F6"
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:labelVisibilityMode="labeled"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:labelVisibilityMode="labeled" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/publishMemoryFab"
+        android:id="@+id/btnSaveMemory"
         style="?attr/floatingActionButtonSmallStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -81,9 +81,8 @@
         app:layout_constraintBottom_toTopOf="@id/navigation"
         app:layout_constraintEnd_toEndOf="parent" />
 
-
     <ImageView
-        android:id="@+id/imagePreview"
+        android:id="@+id/btnSelectImage"
         android:layout_width="320dp"
         android:layout_height="200dp"
         android:layout_marginTop="24dp"
@@ -91,25 +90,40 @@
         android:background="@android:color/darker_gray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/captureMemoryButton" />
+        app:layout_constraintTop_toBottomOf="@id/captureMemoryButton" />
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textInputLayout"
+        android:id="@+id/titleInputLayout"
         android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:hint="Enter Caption"
+        android:hint="Enter Title"
         app:boxStrokeWidth="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imagePreview">
-
+        app:layout_constraintTop_toBottomOf="@id/btnSelectImage">
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/memryCaptionInput"
+            android:id="@+id/etMemoryTitle"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textSize="14sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/contentInputLayout"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Enter Content"
+        app:boxStrokeWidth="1dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titleInputLayout">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etMemoryContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="14sp" />
+    </com.google.android.material.textfield.TextInputLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

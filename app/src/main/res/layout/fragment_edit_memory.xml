@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAF9F6"
-    tools:context=".ui.post.EditMemoryFragment">
+    android:background="#F8F7F4"
+    tools:context=".ui.memory.EditMemoryFragment">
 
     <TextView
         android:id="@+id/editMemoryTitleLabel"
@@ -44,24 +43,24 @@
         android:layout_width="300dp"
         android:layout_height="200dp"
         android:layout_marginTop="16dp"
-        android:scaleType="centerCrop"
         android:background="@android:color/darker_gray"
-        app:layout_constraintTop_toBottomOf="@id/addFromGalleryButton"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/addFromGalleryButton" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/editMemoryTitleLayout"
         android:layout_width="320dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:hint="Memory Title"
-        app:layout_constraintTop_toBottomOf="@id/editMemoryImage"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editMemoryImage">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editMemoryTitle"
+            android:id="@+id/etEditMemoryTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="16sp" />
@@ -71,31 +70,31 @@
         android:id="@+id/editMemoryDescriptionLayout"
         android:layout_width="320dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:hint="Memory Description"
-        app:layout_constraintTop_toBottomOf="@id/editMemoryTitleLayout"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editMemoryTitleLayout">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editMemoryDescription"
+            android:id="@+id/etEditMemoryContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="16sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/updateMemoryButton"
+        android:id="@+id/btnUpdateMemory"
         style="@style/Widget.Material3.Button.ElevatedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
+        android:backgroundTint="#FAF9F6"
         android:text="Save"
+        android:textColor="@color/button_text"
         android:textSize="16sp"
         app:cornerRadius="50dp"
-        android:textColor="@color/button_text"
-        android:backgroundTint="#FAF9F6"
         app:layout_constraintBottom_toTopOf="@+id/navigation"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -104,10 +103,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#FAF9F6"
-        app:menu="@menu/bottom_nav_menu"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

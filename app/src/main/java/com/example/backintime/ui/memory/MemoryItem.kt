@@ -1,4 +1,4 @@
-package com.example.backintime.ui.post
+package com.example.backintime.ui.memory
 
 sealed class MemoryItem {
     data class Header(val title: String) : MemoryItem()

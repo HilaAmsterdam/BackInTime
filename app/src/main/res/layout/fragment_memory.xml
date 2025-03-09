@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FAF9F6"
-    tools:context=".ui.post.MyMemoriesFragment">
+    tools:context=".ui.memory.MemoryFragment">
 
     <TextView
         android:id="@+id/myMemoriesTitle"
@@ -22,7 +22,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewMyMemories"
+        android:id="@+id/recyclerViewMemory"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"

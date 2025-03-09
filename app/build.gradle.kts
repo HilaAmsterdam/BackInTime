@@ -3,7 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.androidx.navigation.safeargs)
     alias(libs.plugins.google.services)
-}
+    id("kotlin-kapt")
+    id("kotlin-parcelize")}
 
 android {
     namespace = "com.example.backintime"
@@ -53,7 +54,12 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
+    implementation(libs.glide)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.room.runtime)
+    kapt (libs.androidx.room.compiler)
+    kapt(libs.compiler)
+    implementation (libs.androidx.room.ktx)
 
 }

@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import com.example.backintime.Model.FirebaseModel
+import com.example.backintime.model.firebase.FirebaseModel
 
 class MainActivity : AppCompatActivity() {
     private val firebaseModel = FirebaseModel()

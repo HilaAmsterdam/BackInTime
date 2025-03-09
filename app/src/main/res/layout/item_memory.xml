@@ -1,40 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp"
-    app:cardBackgroundColor="@color/background_color">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="#FAF9F6"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <RelativeLayout
+        android:id="@+id/horizontal_"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:padding="8dp">
 
         <ImageView
-            android:id="@+id/memoryImage"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:background="#E0E0E0"
-            android:scaleType="centerCrop" />
+            android:id="@+id/selectedMemoryImage"
+            android:layout_width="160dp"
+            android:layout_height="140dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:scaleType="centerCrop"
+            android:contentDescription="memory image"
+            android:background="@android:color/darker_gray"
+            android:layout_marginEnd="8dp" />
 
         <TextView
-            android:id="@+id/memoryTitle"
+            android:id="@+id/selectedMemoryEmail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Post"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="email"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/selectedMemoryTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:textStyle="bold"/>
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_below="@id/selectedMemoryEmail"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:text="memory title" />
 
         <TextView
-            android:id="@+id/memoryDate"
+            android:id="@+id/selectedMemoryContent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Open date"
-            android:textSize="12sp"
-            android:textColor="@android:color/darker_gray"/>
-    </LinearLayout>
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_below="@id/selectedMemoryDate"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:text="memory description" />
+
+        <TextView
+            android:id="@+id/selectedMemoryDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/selectedMemoryTitle"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:textSize="14sp"
+            android:textStyle="italic"
+            android:textColor="#555"
+            android:text="memory date" />
+
+    </RelativeLayout>
 </androidx.cardview.widget.CardView>
