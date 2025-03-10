@@ -1,7 +1,7 @@
 [versions]
 agp = "8.7.3"
-androidxNavigationSafeArgsGradlePlugin = "2.5.0"
-firebaseBom = "33.7.0"
+androidxNavigationSafeArgsGradlePlugin = "2.8.8"
+firebaseBom = "32.7.3"
 googleServices="4.4.2"
 googleServicesVersion = "4.4.2"
 kotlin = "1.9.24"
@@ -10,14 +10,16 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
-kotlinGradlePlugin = "2.1.0"
+kotlinGradlePlugin = "1.9.24"
+kotlinxMetadataJvm = "0.6.0"
 material = "1.12.0"
 activity = "1.10.1"
-constraintlayout = "2.2.0"
-navigationFragmentKtx = "2.8.7"
-navigationSafeArgsGradlePlugin = "2.8.7"
-firebaseAuthKtx = "23.2.0"
-navigationSafeArgsGradlePluginVersion = "2.3.5"
+constraintlayout = "2.2.1"
+navigationFragmentKtx = "2.8.8"
+navigationSafeArgsGradlePlugin = "2.8.8"
+firebaseAuthKtx = "22.1.2"
+navigationSafeArgsGradlePluginVersion = "2.8.8"
+roomKtx = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -26,12 +28,18 @@ androidx-navigation-safe-args-gradle-plugin = { module = "androidx.navigation:na
 androidx-navigation-safe-args-gradle-plugin-v235 = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigationSafeArgsGradlePluginVersion" }
 androidx-navigation-safe-args-gradle-plugin-v250 = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "androidxNavigationSafeArgsGradlePlugin" }
 androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationFragmentKtx" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomKtx" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomKtx" }
+firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
+firebase-firestore-ktx_z = { module = "com.google.firebase:firebase-firestore-ktx)" }
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServicesVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
+kotlinx-metadata-jvm = { module = "org.jetbrains.kotlinx:kotlinx-metadata-jvm", version.ref = "kotlinxMetadataJvm" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
