@@ -1,6 +1,6 @@
-package com.example.backintime.ui.auth;
+package com.example.backintime.ui.auth
 
-
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.FirebaseModel
 import com.example.backintime.R
+import com.example.backintime.activities.SecondActivity
+import com.example.backintime.RegisterFragment
 import com.google.android.material.button.MaterialButton
 
 class LoginFragment : Fragment() {
@@ -19,7 +21,7 @@ class LoginFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         return inflater.inflate(R.layout.fragment_login, container, false)
     }
 
@@ -39,7 +41,10 @@ class LoginFragment : Fragment() {
                 firebaseModel.loginUser(email, password) { success, errorMessage ->
                     if (success) {
                         Toast.makeText(requireContext(), "התחברת בהצלחה!", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+
+                        val intent = Intent(requireContext(), SecondActivity::class.java)
+                        startActivity(intent)
+                        activity?.finish()
                     } else {
                         Toast.makeText(requireContext(), "שגיאה: $errorMessage", Toast.LENGTH_SHORT).show()
                     }
@@ -48,6 +53,7 @@ class LoginFragment : Fragment() {
                 Toast.makeText(requireContext(), "אנא מלא את כל השדות", Toast.LENGTH_SHORT).show()
             }
         }
+
 
         goToRegisterFragment.setOnClickListener {
             findNavController().navigate(R.id.action_loginFragment_to_registerFragment)

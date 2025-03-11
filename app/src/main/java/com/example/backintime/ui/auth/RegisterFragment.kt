@@ -1,5 +1,6 @@
 package com.example.backintime
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,9 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.FirebaseModel
+import com.example.backintime.R
+import com.example.backintime.activities.SecondActivity
+import com.example.backintime.ui.auth.LoginFragment
 import com.google.android.material.button.MaterialButton
 
 class RegisterFragment : Fragment() {
@@ -17,7 +21,7 @@ class RegisterFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         return inflater.inflate(R.layout.fragment_register, container, false)
     }
 
@@ -37,7 +41,10 @@ class RegisterFragment : Fragment() {
                 firebaseModel.registerUser(email, password) { success, errorMessage ->
                     if (success) {
                         Toast.makeText(requireContext(), "נרשמת בהצלחה!", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
+                        // מעבר ל-SecondActivity לאחר רישום מוצלח
+                        val intent = Intent(requireContext(), SecondActivity::class.java)
+                        startActivity(intent)
+                        activity?.finish()
                     } else {
                         Toast.makeText(requireContext(), "שגיאה: $errorMessage", Toast.LENGTH_SHORT).show()
                     }
@@ -47,6 +54,7 @@ class RegisterFragment : Fragment() {
             }
         }
 
+        // מעבר למסך ההתחברות במידה והמשתמש רוצה להתחבר במקום להירשם
         goToLoginFragment.setOnClickListener {
             findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
         }
