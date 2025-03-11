@@ -12,6 +12,7 @@ import com.example.backintime.Model.FirebaseModel
 import com.example.backintime.R
 import com.example.backintime.activities.MainActivity
 import com.example.backintime.databinding.FragmentProfileBinding
+import com.example.backintime.model.firebase.FirebaseModel
 import com.google.firebase.auth.FirebaseAuth
 
 class ProfileFragment : Fragment() {
