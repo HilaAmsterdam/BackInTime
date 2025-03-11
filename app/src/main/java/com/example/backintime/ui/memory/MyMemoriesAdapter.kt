@@ -1,4 +1,4 @@
-package com.example.backintime.ui.post
+package com.example.backintime.ui.memory
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +7,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.backintime.R
-import com.example.backintime.ui.post.MemoryItem
 
 class MyMemoriesAdapter(private val items: List<MemoryItem>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -54,9 +53,9 @@ class MyMemoriesAdapter(private val items: List<MemoryItem>) :
     }
 
     class MemoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val imageView: ImageView = itemView.findViewById(R.id.memoryImage)
-        private val titleTextView: TextView = itemView.findViewById(R.id.memoryTitle)
-        private val dateTextView: TextView = itemView.findViewById(R.id.memoryDate)
+        private val imageView: ImageView = itemView.findViewById(R.id.selectedMemoryImage)
+        private val titleTextView: TextView = itemView.findViewById(R.id.selectedMemoryTitle)
+        private val dateTextView: TextView = itemView.findViewById(R.id.selectedMemoryDate)
 
         fun bind(item: MemoryItem.Memory) {
             imageView.setImageResource(item.imageResId)

@@ -1,4 +1,4 @@
-package com.example.backintime.Model
+package com.example.backintime.model.firebase
 
 data class TimeCapsule(
     var id: String = "",

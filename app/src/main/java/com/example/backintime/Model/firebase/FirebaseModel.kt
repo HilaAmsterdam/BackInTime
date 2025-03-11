@@ -1,4 +1,4 @@
-package com.example.backintime.Model
+package com.example.backintime.model.firebase
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore

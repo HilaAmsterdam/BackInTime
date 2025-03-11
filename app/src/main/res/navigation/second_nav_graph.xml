@@ -6,9 +6,47 @@
     app:startDestination="@id/feedFragment">
 
     <fragment
+        android:id="@+id/createMemoryFragment"
+        android:name="com.example.backintime.ui.memory.MemoryFragment"
+        android:label="Feed"
+        tools:layout="@layout/fragment_feed">
+        <action
+            android:id="@+id/action_feedFragment_to_selectedMemoryFragment"
+            app:destination="@id/selectedMemoryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/selectedMemoryFragment"
+        android:name="com.example.backintime.ui.memory.SelectedMemoryFragment"
+        android:label="Memory Details"
+        tools:layout="@layout/fragment_selected_memory">
+        <action
+            android:id="@+id/action_selectedMemoryFragment_to_editMemoryFragment"
+            app:destination="@id/editMemoryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/editMemoryFragment"
+        android:name="com.example.backintime.ui.memory.EditMemoryFragment"
+        android:label="Edit Memory"
+        tools:layout="@layout/fragment_edit_memory"/>
+
+    <fragment
+        android:id="@+id/createMemoryFragment"
+        android:name="com.example.backintime.ui.memory.CreateMemoryFragment"
+        android:label="Create Memory"
+        tools:layout="@layout/fragment_create_memory"/>
+
+    <fragment
+        android:id="@+id/myMemoriesFragment"
+        android:name="com.example.backintime.ui.memory.MemoryFragment"
+        android:label="My Memories"
+        tools:layout="@layout/fragment_memory"/>
+
+    <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.backintime.ui.auth.ProfileFragment"
-        android:label="fragment_profile"
+        android:label="Profile"
         tools:layout="@layout/fragment_profile">
         <action
             android:id="@+id/action_profileFragment_to_editProfileFragment"
@@ -18,49 +56,10 @@
     <fragment
         android:id="@+id/editProfileFragment"
         android:name="com.example.backintime.ui.auth.EditProfileFragment"
-        android:label="fragment_edit_profile"
+        android:label="Edit Profile"
         tools:layout="@layout/fragment_edit_profile">
         <action
             android:id="@+id/action_editProfileFragment_to_profileFragment"
-            app:destination="@id/profileFragment" />
+            app:destination="@id/profileFragment"/>
     </fragment>
-
-    <fragment
-        android:id="@+id/selectedMemoryFragment"
-        android:name="com.example.backintime.ui.post.SelectedMemoryFragment"
-        android:label="fragment_selected_memory"
-        tools:layout="@layout/fragment_selected_memory">
-        <action
-            android:id="@+id/action_selectedMemoryFragment_to_editMemoryFragment"
-            app:destination="@id/editMemoryFragment"/>
-    </fragment>
-
-    <fragment
-        android:id="@+id/editMemoryFragment"
-        android:name="com.example.backintime.ui.post.EditMemoryFragment"
-        android:label="fragment_edit_memory"
-        tools:layout="@layout/fragment_edit_memory"/>
-
-    <fragment
-        android:id="@+id/feedFragment"
-        android:name="com.example.backintime.ui.feed.FeedFragment"
-        android:label="fragment_feed"
-        tools:layout="@layout/fragment_feed">
-        <action
-            android:id="@+id/action_feedFragment_to_selectedMemoryFragment"
-            app:destination="@id/selectedMemoryFragment"/>
-    </fragment>
-
-    <!-- ✅ Added missing fragments -->
-    <fragment
-        android:id="@+id/createMemoryFragment"
-        android:name="com.example.backintime.ui.post.CreateMemoryFragment"
-        android:label="fragment_create_memory"
-        tools:layout="@layout/fragment_create_memory"/>
-
-    <fragment
-        android:id="@+id/myMemoriesFragment"
-        android:name="com.example.backintime.ui.post.MyMemoriesFragment"
-        android:label="fragment_my_memories"
-        tools:layout="@layout/fragment_my_memories"/>
 </navigation>

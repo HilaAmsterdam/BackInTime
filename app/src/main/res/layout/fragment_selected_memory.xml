@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FAF9F6"
-    tools:context=".ui.post.SelectedMemoryFragment">
+    tools:context=".ui.memory.SelectedMemoryFragment">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/memoryCard"
@@ -44,7 +44,7 @@
                     android:src="@drawable/ic_profile_placeholder" />
 
                 <TextView
-                    android:id="@+id/memoryUsername"
+                    android:id="@+id/selectedMemoryEmail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -62,7 +62,7 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/memoryTitle"
+                android:id="@+id/selectedMemoryTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -72,7 +72,7 @@
 
 
             <ImageView
-                android:id="@+id/memoryImage"
+                android:id="@+id/selectedMemoryImage"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_marginTop="8dp"
@@ -80,15 +80,15 @@
                 android:scaleType="centerCrop" />
 
             <TextView
-                android:id="@+id/memoryDescription"
+                android:id="@+id/selectedMemoryContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Memory description"
+                android:text="memory content"
                 android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/memoryDate"
+                android:id="@+id/selectedMemoryDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
