@@ -8,26 +8,28 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.R
 import com.example.backintime.databinding.FragmentMyMemoriesBinding
+
 class MyMemoriesFragment : Fragment() {
 
     private var _binding: FragmentMyMemoriesBinding? = null
-    private val binding get() = _binding!!
+    private val binding: FragmentMyMemoriesBinding?
+        get() = _binding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         _binding = FragmentMyMemoriesBinding.inflate(inflater, container, false)
-        return binding.root
+        return binding?.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val safeBinding = binding ?: return
 
         val groupedMemories = generateGroupedMemories()
-
-        binding.recyclerViewMyMemories.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerViewMyMemories.adapter = MyMemoriesAdapter(groupedMemories)
+        safeBinding.recyclerViewMyMemories.layoutManager = LinearLayoutManager(requireContext())
+        safeBinding.recyclerViewMyMemories.adapter = MyMemoriesAdapter(groupedMemories)
     }
 
     private fun generateGroupedMemories(): List<MemoryItem> {
@@ -35,10 +37,8 @@ class MyMemoriesFragment : Fragment() {
             MemoryItem.Header("On This Day, 2 Years Ago"),
             MemoryItem.Memory("Post", "Open date", R.drawable.no_photo_uploaded),
             MemoryItem.Memory("Post", "Open date", R.drawable.no_photo_uploaded),
-
             MemoryItem.Header("On This Day, 4 Years Ago"),
             MemoryItem.Memory("Post", "Open date", R.drawable.no_photo_uploaded),
-
             MemoryItem.Header("On This Day, 5 Years Ago"),
             MemoryItem.Memory("Post", "Open date", R.drawable.no_photo_uploaded),
             MemoryItem.Memory("Post", "Open date", R.drawable.no_photo_uploaded)

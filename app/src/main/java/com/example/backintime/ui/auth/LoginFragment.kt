@@ -12,7 +12,6 @@ import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.FirebaseModel
 import com.example.backintime.R
 import com.example.backintime.activities.SecondActivity
-import com.example.backintime.RegisterFragment
 import com.google.android.material.button.MaterialButton
 
 class LoginFragment : Fragment() {
