@@ -1,6 +1,7 @@
 package com.example.backintime.ui.post
 
 import android.app.AlertDialog
+import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -11,7 +12,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
-import com.example.backintime.Model.Memory
+import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.R
 import com.example.backintime.databinding.FragmentCreateMemoryBinding
 import com.example.backintime.utils.CloudinaryHelper
@@ -19,6 +20,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class CreateMemoryFragment : Fragment() {
 
@@ -26,25 +30,34 @@ class CreateMemoryFragment : Fragment() {
     private val binding get() = _binding
 
     private var capturedImageUri: Uri? = null
+    var selectedOpenDate: Long? = null
 
-    // מצלמה
+    // Launcher לצילום תמונה מהמצלמה
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        val safeBinding = binding ?: return@registerForActivityResult
-        if (success) {
-            capturedImageUri?.let { uri ->
-                Picasso.get().load(uri).into(safeBinding.imagePreview)
+        binding?.let { safeBinding ->
+            if (success) {
+                capturedImageUri?.let { uri ->
+                    Picasso.get().load(uri)
+                        .placeholder(R.drawable.baseline_account_circle_24)
+                        .error(R.drawable.baseline_account_circle_24)
+                        .into(safeBinding.imagePreview)
+                }
+            } else {
+                Toast.makeText(requireContext(), "Failed to capture image", Toast.LENGTH_SHORT).show()
             }
-        } else {
-            Toast.makeText(requireContext(), "Failed to capture image", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // גלריה
+    // Launcher לבחירת תמונה מהגלריה
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        val safeBinding = binding ?: return@registerForActivityResult
-        if (uri != null) {
-            capturedImageUri = uri
-            Picasso.get().load(uri).into(safeBinding.imagePreview)
+        binding?.let { safeBinding ->
+            if (uri != null) {
+                capturedImageUri = uri
+                Picasso.get().load(uri)
+                    .placeholder(R.drawable.baseline_account_circle_24)
+                    .error(R.drawable.baseline_account_circle_24)
+                    .into(safeBinding.imagePreview)
+            }
         }
     }
 
@@ -60,12 +73,12 @@ class CreateMemoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
 
-        // כפתור גלריה
+        // כפתור בחירת תמונה מהגלריה
         safeBinding.addFromGallaryButton.setOnClickListener {
             pickImageLauncher.launch("image/*")
         }
 
-        // כפתור מצלמה
+        // כפתור צילום תמונה
         safeBinding.captureMemoryButton.setOnClickListener {
             val imageFile = createImageFile()
             capturedImageUri = FileProvider.getUriForFile(
@@ -76,12 +89,28 @@ class CreateMemoryFragment : Fragment() {
             takePictureLauncher.launch(capturedImageUri)
         }
 
-        // כפתור שליחה
+        // פתיחת DatePickerDialog בעת לחיצה על שדה התאריך
+        safeBinding.memoryDateInput.setOnClickListener {
+            showDatePickerDialog()
+        }
+
+        // כפתור שליחה – כאן נשלוף את הערכים מהשדות:
         safeBinding.publishMemoryFab.setOnClickListener {
-            val caption = safeBinding.publishMemoryFab.textAlignment.toString().trim()
-            if (caption.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a caption", Toast.LENGTH_SHORT).show()
+            val title = safeBinding.memoryTitleInput.text?.toString()?.trim() ?: ""
+            val caption = safeBinding.memoryCaptionInput.text?.toString()?.trim() ?: ""
+            val dateText = safeBinding.memoryDateInput.text?.toString()?.trim() ?: ""
+
+            if (title.isEmpty() || caption.isEmpty() || dateText.isEmpty()) {
+                Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
+            }
+
+            // המרת תאריך ממחרוזת ל־Long (נניח שהתאריך בפורמט dd/MM/yy)
+            val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            val openDate = try {
+                sdf.parse(dateText)?.time ?: System.currentTimeMillis()
+            } catch (e: Exception) {
+                System.currentTimeMillis()
             }
 
             val user = FirebaseAuth.getInstance().currentUser
@@ -91,15 +120,14 @@ class CreateMemoryFragment : Fragment() {
             }
 
             if (capturedImageUri == null) {
-                // במקרה שאין תמונה, אפשר להעלות זיכרון עם imageUrl ריק, או לחייב תמונה
-                uploadMemoryToFirestore("", caption, user.email ?: "")
+                // במקרה שאין תמונה, ניתן לשלוח capsule עם imageUrl ריק
+                uploadTimeCapsuleToFirestore("", title, caption, openDate, user.email ?: "", user.uid)
             } else {
                 // העלאת תמונה ל-Cloudinary
                 CloudinaryHelper(requireContext()).uploadImage(
                     capturedImageUri!!,
                     onSuccess = { imageUrl ->
-                        // מעלים את הזיכרון ל-Firestore עם ה-URL
-                        uploadMemoryToFirestore(imageUrl, caption, user.email ?: "")
+                        uploadTimeCapsuleToFirestore(imageUrl, title, caption, openDate, user.email ?: "", user.uid)
                     },
                     onFailure = { error ->
                         Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
@@ -109,25 +137,54 @@ class CreateMemoryFragment : Fragment() {
         }
     }
 
-    private fun uploadMemoryToFirestore(imageUrl: String, caption: String, userEmail: String) {
-        val memory = Memory(
+    // הצגת תיבת בחירת תאריך
+    private fun showDatePickerDialog() {
+        val calendar = Calendar.getInstance()
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                val selectedCalendar = Calendar.getInstance()
+                selectedCalendar.set(year, month, dayOfMonth)
+                selectedOpenDate = selectedCalendar.timeInMillis
+
+                val formattedDate = SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(selectedCalendar.time)
+                binding?.memoryDateInput?.setText(formattedDate)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+        datePickerDialog.show()
+    }
+
+    private fun uploadTimeCapsuleToFirestore(
+        imageUrl: String,
+        title: String,
+        content: String,
+        openDate: Long,
+        userEmail: String,
+        userId: String
+    ) {
+        val capsule = TimeCapsule(
             id = "",
-            title = caption,
+            title = title,
+            content = content,
+            openDate = openDate,
             imageUrl = imageUrl,
-            timestamp = System.currentTimeMillis(),
-            userEmail = userEmail
+            creatorName = userEmail,
+            creatorId = userId
         )
         val db = FirebaseFirestore.getInstance()
-        val docRef = db.collection("memories").document() // יצירת doc אקראי
-        memory.id = docRef.id
+        val docRef = db.collection("time_capsules").document() // יצירת מסמך אקראי
+        capsule.id = docRef.id
 
-        docRef.set(memory)
+        docRef.set(capsule)
             .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Memory created!", Toast.LENGTH_SHORT).show()
-                // אפשר לחזור ל-FeedFragment
+                Toast.makeText(requireContext(), "Time Capsule created!", Toast.LENGTH_SHORT).show()
+                // ניתן לעבור ל-FeedFragment או לבצע פעולה נוספת
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to create memory: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Failed to create Time Capsule: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
