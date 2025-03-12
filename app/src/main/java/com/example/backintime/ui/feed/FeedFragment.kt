@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentFeedBinding
@@ -34,7 +35,11 @@ class FeedFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
 
-        adapter = FeedAdapter(capsules)
+        adapter = FeedAdapter(capsules) { selectedCapsule ->
+            // Use Safe Args to navigate
+            val action = FeedFragmentDirections.actionFeedFragmentToSelectedMemoryFragment(selectedCapsule)
+            safeBinding.root.findNavController().navigate(action)
+        }
         safeBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         safeBinding.recyclerViewFeed.adapter = adapter
 

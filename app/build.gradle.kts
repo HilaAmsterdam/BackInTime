@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.google.services)
     id("androidx.room") version "2.6.1" apply false
     id("kotlin-kapt")
+    id("kotlin-parcelize")
 }
 
 android {

@@ -10,23 +10,27 @@ import com.squareup.picasso.Picasso
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class FeedAdapter(private val capsules: MutableList<TimeCapsule>) :
-    RecyclerView.Adapter<FeedAdapter.MemoryViewHolder>() {
+class FeedAdapter(
+    private val capsules: MutableList<TimeCapsule>,
+    private val onItemClick: (TimeCapsule) -> Unit
+) : RecyclerView.Adapter<FeedAdapter.MemoryViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MemoryViewHolder {
         val binding = ItemMemoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return MemoryViewHolder(binding)
     }
 
+
     override fun onBindViewHolder(holder: MemoryViewHolder, position: Int) {
+        val capsule = capsules[position]
         holder.bind(capsules[position])
+        holder.itemView.setOnClickListener { onItemClick(capsule) }
     }
 
     override fun getItemCount(): Int = capsules.size
 
     class MemoryViewHolder(private val binding: ItemMemoryBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(capsule: TimeCapsule) {
-            // טוענים את התמונה
             if (capsule.imageUrl.isNotEmpty()) {
                 Picasso.get()
                     .load(capsule.imageUrl)
@@ -34,7 +38,7 @@ class FeedAdapter(private val capsules: MutableList<TimeCapsule>) :
                     .error(R.drawable.baseline_account_circle_24)
                     .into(binding.memoryImage)
             } else {
-                binding.memoryImage.setImageResource(R.drawable.baseline_account_circle_24)
+                binding.memoryImage.setImageResource(R.drawable.logo_back_in_time)
             }
             binding.memoryTitle.text = capsule.title
 
@@ -42,7 +46,7 @@ class FeedAdapter(private val capsules: MutableList<TimeCapsule>) :
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             binding.memoryDate.text = dateFormat.format(capsule.openDate)
 
-            // הצבת האימייל של הכותב (או שם המשתמש)
+            // הצבת האימייל של הכותב
             binding.memoryEmail.text = capsule.creatorName
 
             // הצבת התוכן של הזיכרון

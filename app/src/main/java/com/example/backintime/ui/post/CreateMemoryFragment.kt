@@ -1,7 +1,6 @@
 package com.example.backintime.ui.post
 
 import android.app.DatePickerDialog
-import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -11,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -33,9 +31,8 @@ class CreateMemoryFragment : Fragment() {
     private val binding get() = _binding
 
     private var capturedImageUri: Uri? = null
-    private var selectedOpenDate: Long = System.currentTimeMillis()
 
-    // Launcher לצילום תמונה מהמצלמה
+    // Launcher for taking a picture with the camera
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         binding?.let { safeBinding ->
             if (success) {
@@ -51,7 +48,7 @@ class CreateMemoryFragment : Fragment() {
         }
     }
 
-    // Launcher לבחירת תמונה מהגלריה
+    // Launcher for picking an image from the gallery
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         binding?.let { safeBinding ->
             if (uri != null) {
@@ -61,16 +58,6 @@ class CreateMemoryFragment : Fragment() {
                     .error(R.drawable.baseline_account_circle_24)
                     .into(safeBinding.imagePreview)
             }
-        }
-    }
-
-    // Launcher לקבלת הרשאות יומן בזמן ריצה (Calendar permissions)
-    private val requestCalendarPermissionsLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val allGranted = permissions.values.all { it }
-        if (!allGranted) {
-            Toast.makeText(requireContext(), "Calendar permissions are required for calendar features", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -85,17 +72,6 @@ class CreateMemoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
-
-        // בדיקת הרשאות Calendar בזמן ריצה
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_CALENDAR)
-            != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CALENDAR)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestCalendarPermissionsLauncher.launch(
-                arrayOf(Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR)
-            )
-        }
 
         safeBinding.addFromGallaryButton.setOnClickListener {
             pickImageLauncher.launch("image/*")
@@ -125,7 +101,7 @@ class CreateMemoryFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // המרת תאריך ממחרוזת ל־Long (בפורמט dd/MM/yy)
+            // Convert date string to Long (using dd/MM/yy format)
             val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             val openDate = try {
                 sdf.parse(dateText)?.time ?: System.currentTimeMillis()
@@ -139,13 +115,13 @@ class CreateMemoryFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // בדיקה: אם לא נבחרה תמונה, אין ליצור את הקפסולה
+            // Check: if no image was selected, do not create the capsule
             if (capturedImageUri == null) {
                 Toast.makeText(requireContext(), "Please select an image", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // העלאת תמונה ל-Cloudinary והעלאת הקפסולה ל־Firestore
+            // Upload image to Cloudinary and then upload capsule to Firestore
             CloudinaryHelper(requireContext()).uploadImage(
                 capturedImageUri!!,
                 onSuccess = { imageUrl ->
@@ -158,7 +134,7 @@ class CreateMemoryFragment : Fragment() {
         }
     }
 
-    // פונקציה להצגת DatePickerDialog
+    // Function to show a DatePickerDialog
     private fun showDatePickerDialog() {
         val calendar = Calendar.getInstance()
         val datePickerDialog = DatePickerDialog(
@@ -176,7 +152,7 @@ class CreateMemoryFragment : Fragment() {
         datePickerDialog.show()
     }
 
-    // פונקציה שמעלה את הקפסולה ל־Firestore
+    // Function to upload the capsule to Firestore
     private fun uploadTimeCapsuleToFirestore(
         imageUrl: String,
         title: String,
@@ -201,8 +177,9 @@ class CreateMemoryFragment : Fragment() {
         docRef.set(capsule)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Time Capsule created!", Toast.LENGTH_SHORT).show()
-                // מעבר לעמוד ה־Feed לאחר יצירת הקפסולה
-                findNavController().navigate(R.id.feedFragment)
+                // Use Safe Args to navigate to FeedFragment (action defined in your navigation graph)
+                val action = CreateMemoryFragmentDirections.actionCreateMemoryFragmentToFeedFragment()
+                findNavController().navigate(action)
             }
             .addOnFailureListener { e ->
                 Toast.makeText(requireContext(), "Failed to create Time Capsule: ${e.message}", Toast.LENGTH_SHORT).show()
