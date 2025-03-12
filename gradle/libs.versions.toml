@@ -5,6 +5,10 @@ androidJobVersion = "1.4.3"
 androidxNavigationSafeArgsGradlePlugin = "2.8.8"
 cloudinaryAndroid = "2.1.0"
 firebaseBom = "32.7.3"
+googleApiClientAndroid = "2.2.0"
+googleApiServicesCalendar = "v3-rev305-1.25.0"
+googleHttpClientGson = "1.43.3"
+googleOauthClientJetty = "1.34.1"
 googleServices="4.4.2"
 googleServicesVersion = "4.4.2"
 kotlin = "1.9.24"
@@ -24,6 +28,7 @@ firebaseAuthKtx = "22.1.2"
 navigationSafeArgsGradlePluginVersion = "2.8.8"
 picasso = "2.71828"
 roomKtx = "2.6.1"
+workRuntimeKtx = "2.10.0"
 
 [libraries]
 android-job = { module = "com.evernote:android-job", version.ref = "androidJob" }
@@ -37,9 +42,14 @@ androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx",
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomKtx" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomKtx" }
+androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 cloudinary-android = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroid" }
 firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
 firebase-firestore-ktx_z = { module = "com.google.firebase:firebase-firestore-ktx)" }
+google-api-client-android = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClientAndroid" }
+google-api-services-calendar = { module = "com.google.apis:google-api-services-calendar", version.ref = "googleApiServicesCalendar" }
+google-http-client-gson = { module = "com.google.http-client:google-http-client-gson", version.ref = "googleHttpClientGson" }
+google-oauth-client-jetty = { module = "com.google.oauth-client:google-oauth-client-jetty", version.ref = "googleOauthClientJetty" }
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServicesVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

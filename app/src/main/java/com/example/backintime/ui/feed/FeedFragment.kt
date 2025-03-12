@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentFeedBinding
-import com.example.backintime.ui.post.TimeCapsuleFeedAdapter
+import com.example.backintime.ui.post.FeedAdapter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -18,9 +18,8 @@ class FeedFragment : Fragment() {
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding
 
-    // במקום "memories" עכשיו "capsules" מסוג TimeCapsule
     private val capsules = mutableListOf<TimeCapsule>()
-    private lateinit var adapter: TimeCapsuleFeedAdapter
+    private lateinit var adapter: FeedAdapter
     private var listenerRegistration: ListenerRegistration? = null
 
     override fun onCreateView(
@@ -35,7 +34,7 @@ class FeedFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
 
-        adapter = TimeCapsuleFeedAdapter(capsules)
+        adapter = FeedAdapter(capsules)
         safeBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         safeBinding.recyclerViewFeed.adapter = adapter
 

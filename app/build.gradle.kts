@@ -64,6 +64,9 @@ dependencies {
     implementation(libs.cloudinary.android)
     implementation(libs.android.job)
     implementation(libs.picasso)
+    implementation(libs.androidx.work.runtime.ktx)
+
+
 }
 
 configurations.all {
