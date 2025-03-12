@@ -41,13 +41,13 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="24dp"
         android:layout_marginTop="96dp"
-        android:hint="Edit Username"
+        android:hint="Edit Email"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editProfileImage">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editProfileUsername"
+            android:id="@+id/editProfileEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="16sp" />

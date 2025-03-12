@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.androidx.navigation.safeargs)
     alias(libs.plugins.google.services)
+    id("androidx.room") version "2.6.1" apply false
+    id("kotlin-kapt")
 }
 
 android {
@@ -15,7 +17,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,11 +30,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     viewBinding {
         enable = true
@@ -41,7 +42,6 @@ android {
 }
 
 dependencies {
-
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.core.ktx)
@@ -55,5 +55,21 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.room.runtime)
+    //noinspection KaptUsageInsteadOfKsp
+    kapt(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    kapt(libs.kotlinx.metadata.jvm)
+    implementation(libs.cloudinary.android)
+    implementation(libs.android.job)
+    implementation(libs.picasso)
+}
 
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "com.evernote" && requested.name == "android-job") {
+            useVersion("1.4.3")
+        }
+    }
 }

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b05f3442-8d9e-4636-89cc-890894b464e8" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/Model/dao/AppLocalDbRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/Model/dao/MemoryDao.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/Model/dao/MemoryEntity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/Model/firebase/User.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/base/MyApplication.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/repository/MemoryRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/CreateMemoryFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/EditMemoryFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/GroupMemoriesByDate.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/GroupedMemoryAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/MemoryAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/MemoryFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/MemoryListItem.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/SelectedMemoryFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/viewmodel/MemoryViewModel.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/viewmodel/MemoryViewModelFactory.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/Model/FirebaseModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/Model/firebase/FirebaseModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/Model/TimeCapsule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/Model/firebase/TimeCapsule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/Model/User.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/auth/LoginFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/auth/LoginFragment.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/feed/FeedAdapter.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/feed/FeedFragment.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/feed/FeedItem.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/feed/FeedViewModel.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/post/CreateMemoryFragment.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/post/EditMemoryFragment.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/post/EditMemoryViewModel.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/post/MemoryItem.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/MemoryItem.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/post/MyMemoriesAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/memory/MyMemoriesAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/post/MyMemoriesFragment.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/post/MyMemoriesViewModel.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/post/SelectedMemoryFragment.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/backintime/ui/post/SelectedMemoryViewModel.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/fragment_create_memory.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/fragment_create_memory.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/fragment_edit_memory.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/fragment_edit_memory.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/fragment_my_memories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/fragment_memory.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/fragment_selected_memory.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/fragment_selected_memory.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/item_feed.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/item_feed.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/layout/item_memory.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/layout/item_memory.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/res/navigation/second_nav_graph.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/res/navigation/second_nav_graph.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 6
+}]]></component>
+  <component name="ProjectId" id="2uAXOcotuymhQBQCwCrduRjVOoH" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "android.gradle.sync.needed": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "Merging room",
+    "kotlin-language-version-configured": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b05f3442-8d9e-4636-89cc-890894b464e8" name="Changes" comment="" />
+      <created>1741692321996</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1741692321996</updated>
+    </task>
+    <servers />
+  </component>
+</project>
