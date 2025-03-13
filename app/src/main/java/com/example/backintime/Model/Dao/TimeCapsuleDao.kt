@@ -20,4 +20,7 @@ interface TimeCapsuleDao {
 
     @Query("SELECT * FROM time_capsules WHERE creatorId = :creatorId ORDER BY openDate DESC")
     suspend fun getTimeCapsulesByCreator(creatorId: String): List<TimeCapsuleEntity>
+
+    @Query("SELECT * FROM time_capsules WHERE firebaseId = :firebaseId")
+    suspend fun getMemoryByFirebaseId(firebaseId: String): TimeCapsuleEntity?
 }

@@ -143,10 +143,23 @@ class EditProfileFragment : Fragment() {
                     user.updateEmail(newEmail).addOnCompleteListener { task ->
                         if (!isAdded) return@addOnCompleteListener
                         if (task.isSuccessful) {
-                            Toast.makeText(context, "Email updated", Toast.LENGTH_SHORT).show()
-                            if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
-                                findNavController().popBackStack()
-                            }
+                            // עדכון המסמך ב-Firestore גם כן
+                            FirebaseFirestore.getInstance()
+                                .collection("users")
+                                .document(user.uid)
+                                .update("email", newEmail)
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "Email updated", Toast.LENGTH_SHORT).show()
+                                    if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
+                                        findNavController().popBackStack()
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(context, "Failed to update email in Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
+                                        findNavController().popBackStack()
+                                    }
+                                }
                         } else {
                             // אם נדרש re-authentication
                             if (task.exception is FirebaseAuthRecentLoginRequiredException) {
