@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.FirebaseModel
+import com.example.backintime.Model.SyncManager
 import com.example.backintime.R
 import com.example.backintime.activities.SecondActivity
 import com.google.android.material.button.MaterialButton
@@ -38,21 +39,27 @@ class LoginFragment : Fragment() {
 
             if (email.isNotBlank() && password.isNotBlank()) {
                 firebaseModel.loginUser(email, password) { success, errorMessage ->
-                    if (success) {
-                        Toast.makeText(requireContext(), "התחברת בהצלחה!", Toast.LENGTH_SHORT).show()
+                    // בדיקה שהפרגמנט עדיין מצורף
+                    if (!isAdded) return@loginUser
+                    val safeContext = context ?: return@loginUser
 
-                        val intent = Intent(requireContext(), SecondActivity::class.java)
+                    if (success) {
+                        Toast.makeText(safeContext, "התחברת בהצלחה!", Toast.LENGTH_SHORT).show()
+
+                        // קריאה לסנכרון הנתונים מ-Firebase ל-Room
+                        SyncManager.syncFirebaseDataToRoom(safeContext)
+
+                        val intent = Intent(safeContext, SecondActivity::class.java)
                         startActivity(intent)
                         activity?.finish()
                     } else {
-                        Toast.makeText(requireContext(), "שגיאה: $errorMessage", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(safeContext, "שגיאה: $errorMessage", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
                 Toast.makeText(requireContext(), "אנא מלא את כל השדות", Toast.LENGTH_SHORT).show()
             }
         }
-
 
         goToRegisterFragment.setOnClickListener {
             findNavController().navigate(R.id.action_loginFragment_to_registerFragment)

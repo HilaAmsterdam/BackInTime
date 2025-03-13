@@ -1,7 +1,6 @@
 package com.example.backintime.ui.post
 
 import android.app.DatePickerDialog
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -13,13 +12,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.Model.TimeCapsule
+import com.example.backintime.Model.Dao.TimeCapsuleEntity
 import com.example.backintime.R
 import com.example.backintime.databinding.FragmentCreateMemoryBinding
 import com.example.backintime.utils.CloudinaryHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -101,7 +106,6 @@ class CreateMemoryFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // Convert date string to Long (using dd/MM/yy format)
             val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             val openDate = try {
                 sdf.parse(dateText)?.time ?: System.currentTimeMillis()
@@ -115,13 +119,11 @@ class CreateMemoryFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // Check: if no image was selected, do not create the capsule
             if (capturedImageUri == null) {
                 Toast.makeText(requireContext(), "Please select an image", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Upload image to Cloudinary and then upload capsule to Firestore
             CloudinaryHelper(requireContext()).uploadImage(
                 capturedImageUri!!,
                 onSuccess = { imageUrl ->
@@ -134,7 +136,6 @@ class CreateMemoryFragment : Fragment() {
         }
     }
 
-    // Function to show a DatePickerDialog
     private fun showDatePickerDialog() {
         val calendar = Calendar.getInstance()
         val datePickerDialog = DatePickerDialog(
@@ -152,7 +153,6 @@ class CreateMemoryFragment : Fragment() {
         datePickerDialog.show()
     }
 
-    // Function to upload the capsule to Firestore
     private fun uploadTimeCapsuleToFirestore(
         imageUrl: String,
         title: String,
@@ -177,7 +177,21 @@ class CreateMemoryFragment : Fragment() {
         docRef.set(capsule)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Time Capsule created!", Toast.LENGTH_SHORT).show()
-                // Use Safe Args to navigate to FeedFragment (action defined in your navigation graph)
+                // הוספת הזיכרון גם למסד הנתונים המקומי (Room)
+                CoroutineScope(Dispatchers.IO).launch {
+                    val localDb = AppLocalDb.getDatabase(requireContext())
+                    localDb.timeCapsuleDao().insertTimeCapsule(
+                        TimeCapsuleEntity(
+                            firebaseId = capsule.id,
+                            title = capsule.title,
+                            content = capsule.content,
+                            openDate = capsule.openDate,
+                            imageUrl = capsule.imageUrl,
+                            creatorName = capsule.creatorName,
+                            creatorId = capsule.creatorId
+                        )
+                    )
+                }
                 val action = CreateMemoryFragmentDirections.actionCreateMemoryFragmentToFeedFragment()
                 findNavController().navigate(action)
             }

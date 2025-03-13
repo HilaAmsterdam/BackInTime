@@ -1,5 +1,6 @@
 package com.example.backintime.Model
 
+import com.example.backintime.Model.Dao.TimeCapsuleEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -7,7 +8,6 @@ class FirebaseModel {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    // Register a new user with email, password, and optional profile image URL
     fun registerUser(
         email: String,
         password: String,
@@ -18,7 +18,6 @@ class FirebaseModel {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val uid = auth.currentUser?.uid ?: ""
-                    // Prepare user data with optional profile image URL
                     val user = hashMapOf(
                         "uid" to uid,
                         "email" to email
@@ -35,7 +34,6 @@ class FirebaseModel {
             }
     }
 
-    // Login user with email and password
     fun loginUser(email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -47,13 +45,33 @@ class FirebaseModel {
             }
     }
 
-    // Check if a user is logged in
     fun isUserLoggedIn(): Boolean {
         return auth.currentUser != null
     }
 
-    // Logout the current user
     fun logoutUser() {
         auth.signOut()
+    }
+
+    fun fetchTimeCapsulesFromFirebase(onComplete: (List<TimeCapsuleEntity>) -> Unit) {
+        db.collection("time_capsules")
+            .get()
+            .addOnSuccessListener { result ->
+                val capsules = result.documents.map { doc ->
+                    TimeCapsuleEntity(
+                        firebaseId = doc.id,
+                        title = doc.getString("title") ?: "",
+                        content = doc.getString("content") ?: "",
+                        openDate = doc.getLong("openDate") ?: 0,
+                        imageUrl = doc.getString("imageUrl") ?: "",
+                        creatorName = doc.getString("creatorName") ?: "",
+                        creatorId = doc.getString("creatorId") ?: ""
+                    )
+                }
+                onComplete(capsules)
+            }
+            .addOnFailureListener { exception ->
+                onComplete(emptyList())
+            }
     }
 }
