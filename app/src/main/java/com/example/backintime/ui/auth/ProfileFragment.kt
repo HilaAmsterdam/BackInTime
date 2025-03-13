@@ -40,9 +40,7 @@ class ProfileFragment : Fragment() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             safeBinding.profileEmailEdit.setText(currentUser.email)
-            safeBinding.accountUsername.text = currentUser.displayName ?: "No username"
 
-            // טוען תמונת פרופיל: אם FirebaseAuth.photoUrl לא מוגדר, מנסה לטעון מ-Firestore
             val photoUrl = currentUser.photoUrl?.toString()
             if (!photoUrl.isNullOrEmpty()) {
                 Picasso.get()
