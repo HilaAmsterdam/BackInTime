@@ -6,11 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.backintime.Model.Memory
-import com.example.backintime.R
+import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentFeedBinding
-import com.example.backintime.ui.post.MemoryFeedAdapter
+import com.example.backintime.ui.post.FeedAdapter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -19,8 +19,8 @@ class FeedFragment : Fragment() {
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding
 
-    private val memories = mutableListOf<Memory>()
-    private lateinit var adapter: MemoryFeedAdapter
+    private val capsules = mutableListOf<TimeCapsule>()
+    private lateinit var adapter: FeedAdapter
     private var listenerRegistration: ListenerRegistration? = null
 
     override fun onCreateView(
@@ -35,25 +35,29 @@ class FeedFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
 
-        adapter = MemoryFeedAdapter(memories)
+        adapter = FeedAdapter(capsules) { selectedCapsule ->
+            // Use Safe Args to navigate
+            val action = FeedFragmentDirections.actionFeedFragmentToSelectedMemoryFragment(selectedCapsule)
+            safeBinding.root.findNavController().navigate(action)
+        }
         safeBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         safeBinding.recyclerViewFeed.adapter = adapter
 
-        // מאזינים לשינויים בקולקציה "memories"
+        // מאזינים לשינויים בקולקציה "time_capsules" וממיינים לפי openDate
         listenerRegistration = FirebaseFirestore.getInstance()
-            .collection("memories")
-            .orderBy("timestamp") // ממוין לפי הזמן
+            .collection("time_capsules")
+            .orderBy("openDate")
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
                 if (snapshot != null && !snapshot.isEmpty) {
-                    memories.clear()
+                    capsules.clear()
                     for (doc in snapshot.documents) {
-                        val memory = doc.toObject(Memory::class.java)
-                        if (memory != null) {
-                            memories.add(memory)
+                        val capsule = doc.toObject(TimeCapsule::class.java)
+                        if (capsule != null) {
+                            capsules.add(capsule)
                         }
                     }
                     adapter.notifyDataSetChanged()

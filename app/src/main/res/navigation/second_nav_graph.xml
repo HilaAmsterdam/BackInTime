@@ -30,16 +30,21 @@
         android:name="com.example.backintime.ui.post.SelectedMemoryFragment"
         android:label="fragment_selected_memory"
         tools:layout="@layout/fragment_selected_memory">
+        <argument
+            android:name="timeCapsule"
+            app:argType="com.example.backintime.Model.TimeCapsule" />
         <action
             android:id="@+id/action_selectedMemoryFragment_to_editMemoryFragment"
             app:destination="@id/editMemoryFragment"/>
     </fragment>
 
+
     <fragment
         android:id="@+id/editMemoryFragment"
         android:name="com.example.backintime.ui.post.EditMemoryFragment"
         android:label="fragment_edit_memory"
-        tools:layout="@layout/fragment_edit_memory"/>
+        tools:layout="@layout/fragment_edit_memory">
+    </fragment>
 
     <fragment
         android:id="@+id/feedFragment"
@@ -51,16 +56,23 @@
             app:destination="@id/selectedMemoryFragment"/>
     </fragment>
 
-    <!-- ✅ Added missing fragments -->
     <fragment
         android:id="@+id/createMemoryFragment"
         android:name="com.example.backintime.ui.post.CreateMemoryFragment"
         android:label="fragment_create_memory"
-        tools:layout="@layout/fragment_create_memory"/>
+        tools:layout="@layout/fragment_create_memory">
+        <action
+            android:id="@+id/action_createMemoryFragment_to_feedFragment"
+            app:destination="@id/feedFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/myMemoriesFragment"
         android:name="com.example.backintime.ui.post.MyMemoriesFragment"
         android:label="fragment_my_memories"
-        tools:layout="@layout/fragment_my_memories"/>
+        tools:layout="@layout/fragment_my_memories">
+        <action
+            android:id="@+id/action_myMemoriesFragment_to_selectedMemoryFragment"
+            app:destination="@id/selectedMemoryFragment" />
+    </fragment>
 </navigation>

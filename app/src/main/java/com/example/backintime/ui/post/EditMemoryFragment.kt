@@ -14,7 +14,6 @@ class EditMemoryFragment : Fragment() {
         fun newInstance() = EditMemoryFragment()
     }
 
-    private val viewModel: EditMemoryViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

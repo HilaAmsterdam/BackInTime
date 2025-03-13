@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.google.services)
     id("androidx.room") version "2.6.1" apply false
     id("kotlin-kapt")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -64,6 +65,9 @@ dependencies {
     implementation(libs.cloudinary.android)
     implementation(libs.android.job)
     implementation(libs.picasso)
+    implementation(libs.androidx.work.runtime.ktx)
+
+
 }
 
 configurations.all {

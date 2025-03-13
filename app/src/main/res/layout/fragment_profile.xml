@@ -8,40 +8,27 @@
     android:background="#FAF9F6"
     tools:context=".ui.auth.ProfileFragment">
 
-    <!-- הצגת שם המשתמש בחלק העליון -->
-    <TextView
-        android:id="@+id/accountUsername"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:layout_marginEnd="24dp"
-        android:text="account username"
-        android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- הצגת תמונת הפרופיל -->
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
-        android:layout_marginStart="24dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:layout_marginTop="64dp"
+        android:layout_marginBottom="96dp"
         android:src="@drawable/baseline_account_circle_24"
-        app:layout_constraintEnd_toStartOf="@+id/accountUsername"
+        app:layout_constraintBottom_toTopOf="@+id/profileUsername"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- תיבת טקסט להצגת האימייל -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/profileUsername"
-        android:layout_width="320dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginHorizontal="24dp"
         android:layout_marginTop="96dp"
-        android:layout_marginEnd="24dp"
-        app:boxStrokeWidth="2dp"
-        app:boxBackgroundMode="outline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView">
@@ -55,7 +42,7 @@
             android:focusable="false"
             android:hint="Email"
             android:text="Email"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- שאר הרכיבים (כפתורי עריכה, מחיקה, התנתקות, ותפריט ניווט) נשמרים כמו שעיצבת -->
