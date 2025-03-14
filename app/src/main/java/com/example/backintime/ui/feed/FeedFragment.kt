@@ -52,7 +52,7 @@ class FeedFragment : Fragment() {
     // כל פעם שהמסך חוזר לפוקוס, מבצעים סנכרון מחדש מה-Firebase ומעדכנים את Room
     override fun onResume() {
         super.onResume()
-        SyncManager.syncFirebaseDataToRoom(requireContext())
+        SyncManager.listenFirebaseDataToRoom(requireContext())
         // ניתן להוסיף קצת דיליי (או להשתמש במנגנון observer) כדי לוודא שהנתונים הוכנסו לפני קריאת הנתונים מ-Room
         fetchCapsulesFromRoom()
     }

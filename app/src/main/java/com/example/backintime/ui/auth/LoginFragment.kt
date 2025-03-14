@@ -47,7 +47,7 @@ class LoginFragment : Fragment() {
                         Toast.makeText(safeContext, "התחברת בהצלחה!", Toast.LENGTH_SHORT).show()
 
                         // קריאה לסנכרון הנתונים מ-Firebase ל-Room
-                        SyncManager.syncFirebaseDataToRoom(safeContext)
+                        SyncManager.listenFirebaseDataToRoom(safeContext)
 
                         val intent = Intent(safeContext, SecondActivity::class.java)
                         startActivity(intent)
