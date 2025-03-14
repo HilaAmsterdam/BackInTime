@@ -7,10 +7,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 object SyncManager {
-    fun syncFirebaseDataToRoom(context: Context) {
+    fun listenFirebaseDataToRoom(context: Context) {
         val firebaseModel = FirebaseModel()
         val localDb = AppLocalDb.getDatabase(context)
-        firebaseModel.fetchTimeCapsulesFromFirebase { capsules ->
+        firebaseModel.listenTimeCapsulesFromFirebase { capsules ->
             CoroutineScope(Dispatchers.IO).launch {
                 localDb.timeCapsuleDao().clearTimeCapsules()
                 capsules.forEach { capsule ->

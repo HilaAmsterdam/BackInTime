@@ -53,6 +53,7 @@ class FirebaseModel {
         auth.signOut()
     }
 
+    // Existing one-time fetch method (if needed)
     fun fetchTimeCapsulesFromFirebase(onComplete: (List<TimeCapsuleEntity>) -> Unit) {
         db.collection("time_capsules")
             .get()
@@ -72,6 +73,29 @@ class FirebaseModel {
             }
             .addOnFailureListener { exception ->
                 onComplete(emptyList())
+            }
+    }
+
+    // New method: use a snapshot listener for real-time updates
+    fun listenTimeCapsulesFromFirebase(onUpdate: (List<TimeCapsuleEntity>) -> Unit) {
+        db.collection("time_capsules")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onUpdate(emptyList())
+                    return@addSnapshotListener
+                }
+                val capsules = snapshot?.documents?.map { doc ->
+                    TimeCapsuleEntity(
+                        firebaseId = doc.id,
+                        title = doc.getString("title") ?: "",
+                        content = doc.getString("content") ?: "",
+                        openDate = doc.getLong("openDate") ?: 0,
+                        imageUrl = doc.getString("imageUrl") ?: "",
+                        creatorName = doc.getString("creatorName") ?: "",
+                        creatorId = doc.getString("creatorId") ?: ""
+                    )
+                } ?: emptyList()
+                onUpdate(capsules)
             }
     }
 }
