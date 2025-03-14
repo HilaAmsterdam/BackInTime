@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.Model.AppLocalDb
+import com.example.backintime.Model.FeedItem
 import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentFeedBinding
@@ -17,13 +18,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class FeedFragment : Fragment() {
 
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding
 
-    private val capsules = mutableListOf<TimeCapsule>()
+    // Use a list of FeedItem for grouped data
+    private val feedItems = mutableListOf<FeedItem>()
     private lateinit var adapter: FeedAdapter
 
     override fun onCreateView(
@@ -38,25 +42,23 @@ class FeedFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
 
-        adapter = FeedAdapter(capsules) { selectedCapsule ->
+        adapter = FeedAdapter(feedItems) { selectedCapsule ->
             val action = FeedFragmentDirections.actionFeedFragmentToSelectedMemoryFragment(selectedCapsule)
             safeBinding.root.findNavController().navigate(action)
         }
         safeBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         safeBinding.recyclerViewFeed.adapter = adapter
 
-        // Set up the swipe-to-refresh behavior.
+        // Set up swipe-to-refresh behavior.
         safeBinding.swipeRefreshLayout.setOnRefreshListener {
-            // Start the real-time sync; the data should update accordingly.
             SyncManager.listenFirebaseDataToRoom(requireContext())
             fetchCapsulesFromRoom()
         }
 
-        // Initial load of data from Room
+        // Initial load from Room
         fetchCapsulesFromRoom()
     }
 
-    // Every time the fragment resumes, we start the real-time sync and refresh data.
     override fun onResume() {
         super.onResume()
         SyncManager.listenFirebaseDataToRoom(requireContext())
@@ -78,14 +80,33 @@ class FeedFragment : Fragment() {
                     creatorId = entity.creatorId
                 )
             }
+            // Sort by openDate ascending (closest date first)
+            val sortedCapsules = capsulesList.sortedBy { it.openDate }
+            // Group the capsules into FeedItems
+            val groupedItems = prepareFeedItems(sortedCapsules)
             withContext(Dispatchers.Main) {
-                capsules.clear()
-                capsules.addAll(capsulesList.sortedByDescending { it.openDate })
+                feedItems.clear()
+                feedItems.addAll(groupedItems)
                 adapter.notifyDataSetChanged()
-                binding?.swipeRefreshLayout?.isRefreshing = false // Stop the progress indicator.
-                Log.d("FeedFragment", "Loaded ${capsules.size} capsules from Room")
+                binding?.swipeRefreshLayout?.isRefreshing = false
+                Log.d("FeedFragment", "Loaded ${feedItems.size} items (headers and posts) from Room")
             }
         }
+    }
+
+    private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
+        val items = mutableListOf<FeedItem>()
+        val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+        // Group capsules by the formatted openDate.
+        val grouped = capsules.groupBy { dateFormat.format(it.openDate) }
+        // Sort the keys (dates) ascending (closest date first)
+        val sortedKeys = grouped.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
+        for (date in sortedKeys) {
+            items.add(FeedItem.Header(date))
+            val posts = grouped[date]?.sortedBy { it.openDate } ?: emptyList()
+            posts.forEach { items.add(FeedItem.Post(it)) }
+        }
+        return items
     }
 
     override fun onDestroyView() {

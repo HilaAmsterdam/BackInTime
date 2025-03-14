@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.Model.AppLocalDb
+import com.example.backintime.Model.FeedItem
 import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentMyMemoriesBinding
@@ -18,13 +19,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class MyMemoriesFragment : Fragment() {
 
     private var _binding: FragmentMyMemoriesBinding? = null
     private val binding get() = _binding
 
-    private val myCapsules = mutableListOf<TimeCapsule>()
+    private val feedItems = mutableListOf<FeedItem>()
     private lateinit var adapter: FeedAdapter
 
     override fun onCreateView(
@@ -37,16 +40,15 @@ class MyMemoriesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         binding?.let { bindingNonNull ->
-            adapter = FeedAdapter(myCapsules) { selectedCapsule ->
+            adapter = FeedAdapter(feedItems) { selectedCapsule ->
                 val action = MyMemoriesFragmentDirections.actionMyMemoriesFragmentToSelectedMemoryFragment(selectedCapsule)
                 bindingNonNull.root.findNavController().navigate(action)
             }
             bindingNonNull.recyclerViewMyMemories.layoutManager = LinearLayoutManager(requireContext())
             bindingNonNull.recyclerViewMyMemories.adapter = adapter
 
-            // Set up swipe-to-refresh: When the user swipes down, perform a sync and reload data.
+            // Set up swipe-to-refresh.
             bindingNonNull.swipeRefreshLayout.setOnRefreshListener {
                 SyncManager.listenFirebaseDataToRoom(requireContext())
                 fetchUserCapsules(FirebaseAuth.getInstance().currentUser?.uid ?: "")
@@ -76,14 +78,28 @@ class MyMemoriesFragment : Fragment() {
                     creatorId = entity.creatorId
                 )
             }
+            // Sort and group posts by openDate.
+            val sortedCapsules = capsulesList.sortedBy { it.openDate }
+            val groupedItems = prepareFeedItems(sortedCapsules)
             withContext(Dispatchers.Main) {
-                myCapsules.clear()
-                myCapsules.addAll(capsulesList)
+                feedItems.clear()
+                feedItems.addAll(groupedItems)
                 adapter.notifyDataSetChanged()
-                // Stop the refreshing animation
                 binding?.swipeRefreshLayout?.isRefreshing = false
             }
         }
+    }
+
+    private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
+        val items = mutableListOf<FeedItem>()
+        val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+        val grouped = capsules.groupBy { dateFormat.format(it.openDate) }
+        val sortedKeys = grouped.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
+        for (date in sortedKeys) {
+            items.add(FeedItem.Header(date))
+            grouped[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
+        }
+        return items
     }
 
     override fun onDestroyView() {
