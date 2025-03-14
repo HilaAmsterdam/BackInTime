@@ -56,7 +56,7 @@ class SelectedMemoryFragment : Fragment() {
         super.onResume()
         // Call SyncManager to refresh local data from Firestore,
         // ensuring that any deleted posts are removed from Room.
-        SyncManager.syncFirebaseDataToRoom(requireContext())
+        SyncManager.listenFirebaseDataToRoom(requireContext())
         refreshMemoryData()
     }
 

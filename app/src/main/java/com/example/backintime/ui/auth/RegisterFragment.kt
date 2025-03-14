@@ -105,7 +105,7 @@ class RegisterFragment : Fragment() {
                             if (success) {
                                 Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show()
                                 // סנכרון נתונים מ-Firebase ל- Room לאחר רישום מוצלח
-                                SyncManager.syncFirebaseDataToRoom(requireContext())
+                                SyncManager.listenFirebaseDataToRoom(requireContext())
                                 val intent = Intent(requireContext(), SecondActivity::class.java)
                                 startActivity(intent)
                                 activity?.finish()
@@ -121,7 +121,7 @@ class RegisterFragment : Fragment() {
                         if (success) {
                             Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show()
                             // סנכרון נתונים מ-Firebase ל- Room לאחר רישום מוצלח
-                            SyncManager.syncFirebaseDataToRoom(requireContext())
+                            SyncManager.listenFirebaseDataToRoom(requireContext())
                             val intent = Intent(requireContext(), SecondActivity::class.java)
                             startActivity(intent)
                             activity?.finish()
