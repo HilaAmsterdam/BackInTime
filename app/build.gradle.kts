@@ -58,7 +58,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.androidx.room.runtime)
     implementation (libs.androidx.swiperefreshlayout)
-
+    implementation (libs.androidx.work.runtime.ktx)
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)

@@ -2,7 +2,6 @@ package com.example.backintime.ui.post
 
 import android.app.AlertDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -54,8 +53,7 @@ class SelectedMemoryFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Call SyncManager to refresh local data from Firestore,
-        // ensuring that any deleted posts are removed from Room.
+        // Refresh local data from Firestore to ensure deleted posts are removed from Room.
         SyncManager.listenFirebaseDataToRoom(requireContext())
         refreshMemoryData()
     }
@@ -88,14 +86,25 @@ class SelectedMemoryFragment : Fragment() {
             safeBinding.memoryEmail.text = memory.creatorName
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             safeBinding.memoryDate.text = dateFormat.format(memory.openDate)
+
             if (memory.imageUrl.isNotEmpty()) {
+                // Show the progress bar before loading the image
+                safeBinding.memoryProgressBar.visibility = View.VISIBLE
                 Picasso.get()
                     .load(memory.imageUrl)
                     .placeholder(R.drawable.ic_profile_placeholder)
                     .error(R.drawable.ic_profile_placeholder)
-                    .into(safeBinding.memoryImage)
+                    .into(safeBinding.memoryImage, object : com.squareup.picasso.Callback {
+                        override fun onSuccess() {
+                            safeBinding.memoryProgressBar.visibility = View.GONE
+                        }
+                        override fun onError(e: Exception?) {
+                            safeBinding.memoryProgressBar.visibility = View.GONE
+                        }
+                    })
             } else {
                 safeBinding.memoryImage.setImageResource(R.drawable.ic_profile_placeholder)
+                safeBinding.memoryProgressBar.visibility = View.GONE
             }
         }
     }
@@ -157,13 +166,20 @@ class SelectedMemoryFragment : Fragment() {
                 val profileImageUrl = document.getString("profileImageUrl") ?: ""
                 binding?.let { safeBinding ->
                     if (profileImageUrl.isNotEmpty()) {
+                        safeBinding.profileProgressBar.visibility = View.VISIBLE
                         Picasso.get()
                             .load(profileImageUrl)
-                            .placeholder(R.drawable.ic_profile_placeholder)
-                            .error(R.drawable.ic_profile_placeholder)
-                            .into(safeBinding.userProfileImage)
+                            .into(safeBinding.userProfileImage, object : com.squareup.picasso.Callback {
+                                override fun onSuccess() {
+                                    safeBinding.profileProgressBar.visibility = View.GONE
+                                }
+                                override fun onError(e: Exception?) {
+                                    safeBinding.profileProgressBar.visibility = View.GONE
+                                }
+                            })
                     } else {
                         safeBinding.userProfileImage.setImageResource(R.drawable.ic_profile_placeholder)
+                        safeBinding.profileProgressBar.visibility = View.GONE
                     }
                 }
             }

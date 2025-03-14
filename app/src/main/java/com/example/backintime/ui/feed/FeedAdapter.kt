@@ -79,16 +79,28 @@ class FeedAdapter(
 
     class PostViewHolder(private val binding: ItemMemoryBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(capsule: TimeCapsule) {
+            // Set up image loading with a progress indicator
             if (capsule.imageUrl.isNotEmpty()) {
+                binding.progressBar.visibility = View.VISIBLE
                 Picasso.get()
                     .load(capsule.imageUrl)
-                    .placeholder(R.drawable.baseline_account_circle_24)
-                    .error(R.drawable.baseline_account_circle_24)
-                    .into(binding.memoryImage)
+                    .into(binding.memoryImage, object : com.squareup.picasso.Callback {
+                        override fun onSuccess() {
+                            // Hide the progress bar when the image loads successfully
+                            binding.progressBar.visibility = View.GONE
+                        }
+
+                        override fun onError(e: Exception?) {
+                            // Hide the progress bar even if there’s an error
+                            binding.progressBar.visibility = View.GONE
+                        }
+                    })
             } else {
                 binding.memoryImage.setImageResource(R.drawable.logo_back_in_time)
+                binding.progressBar.visibility = View.GONE
             }
 
+            // Set other fields
             binding.memoryTitle.text = capsule.title
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             binding.memoryDate.text = dateFormat.format(capsule.openDate)
@@ -96,4 +108,5 @@ class FeedAdapter(
             binding.memoryContent.text = capsule.content
         }
     }
+
 }
