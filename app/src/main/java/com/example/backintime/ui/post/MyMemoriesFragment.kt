@@ -8,28 +8,30 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentMyMemoriesBinding
+import com.example.backintime.ui.post.FeedAdapter
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MyMemoriesFragment : Fragment() {
 
     private var _binding: FragmentMyMemoriesBinding? = null
     private val binding get() = _binding
 
-    // List to store the user's capsules
     private val myCapsules = mutableListOf<TimeCapsule>()
     private lateinit var adapter: FeedAdapter
-    private var listenerRegistration: ListenerRegistration? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMyMemoriesBinding.inflate(inflater, container, false)
-        return _binding?.root ?: View(inflater.context) // Fallback view if binding is null
+        return _binding?.root ?: View(inflater.context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -37,8 +39,7 @@ class MyMemoriesFragment : Fragment() {
 
         _binding?.let { bindingNonNull ->
             adapter = FeedAdapter(myCapsules) { selectedCapsule ->
-                val action = MyMemoriesFragmentDirections
-                    .actionMyMemoriesFragmentToSelectedMemoryFragment(selectedCapsule)
+                val action = MyMemoriesFragmentDirections.actionMyMemoriesFragmentToSelectedMemoryFragment(selectedCapsule)
                 bindingNonNull.root.findNavController().navigate(action)
             }
             bindingNonNull.recyclerViewMyMemories.layoutManager = LinearLayoutManager(requireContext())
@@ -50,33 +51,34 @@ class MyMemoriesFragment : Fragment() {
             Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
             return
         }
+        fetchUserCapsules(user.uid)
+    }
 
-        listenerRegistration = FirebaseFirestore.getInstance()
-            .collection("time_capsules")
-            .whereEqualTo("creatorId", user.uid)
-            .orderBy("openDate") // Order as needed
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                    return@addSnapshotListener
-                }
-                if (snapshot != null) {
-                    myCapsules.clear()
-                    for (doc in snapshot.documents) {
-                        val capsule = doc.toObject(TimeCapsule::class.java)
-                        if (capsule != null) {
-                            myCapsules.add(capsule)
-                        }
-                    }
-                    adapter.notifyDataSetChanged()
-                }
+    private fun fetchUserCapsules(userId: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = AppLocalDb.getDatabase(requireContext())
+            val capsuleEntities = db.timeCapsuleDao().getTimeCapsulesByCreator(userId)
+            val capsulesList = capsuleEntities.map { entity ->
+                TimeCapsule(
+                    id = entity.firebaseId,
+                    title = entity.title,
+                    content = entity.content,
+                    openDate = entity.openDate,
+                    imageUrl = entity.imageUrl,
+                    creatorName = entity.creatorName,
+                    creatorId = entity.creatorId
+                )
             }
+            withContext(Dispatchers.Main) {
+                myCapsules.clear()
+                myCapsules.addAll(capsulesList)
+                adapter.notifyDataSetChanged()
+            }
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        listenerRegistration?.remove()
         _binding = null
     }
 }
-

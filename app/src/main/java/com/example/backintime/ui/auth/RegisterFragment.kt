@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.FirebaseModel
+import com.example.backintime.Model.SyncManager
 import com.example.backintime.R
 import com.example.backintime.activities.SecondActivity
 import com.example.backintime.databinding.FragmentRegisterBinding
@@ -103,6 +104,8 @@ class RegisterFragment : Fragment() {
                         firebaseModel.registerUser(email, password, imageUrl) { success, errorMessage ->
                             if (success) {
                                 Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show()
+                                // סנכרון נתונים מ-Firebase ל- Room לאחר רישום מוצלח
+                                SyncManager.syncFirebaseDataToRoom(requireContext())
                                 val intent = Intent(requireContext(), SecondActivity::class.java)
                                 startActivity(intent)
                                 activity?.finish()
@@ -117,6 +120,8 @@ class RegisterFragment : Fragment() {
                     firebaseModel.registerUser(email, password, null) { success, errorMessage ->
                         if (success) {
                             Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show()
+                            // סנכרון נתונים מ-Firebase ל- Room לאחר רישום מוצלח
+                            SyncManager.syncFirebaseDataToRoom(requireContext())
                             val intent = Intent(requireContext(), SecondActivity::class.java)
                             startActivity(intent)
                             activity?.finish()

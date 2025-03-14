@@ -1,18 +1,22 @@
 package com.example.backintime.ui.feed
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.backintime.Model.AppLocalDb
+import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentFeedBinding
 import com.example.backintime.ui.post.FeedAdapter
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class FeedFragment : Fragment() {
 
@@ -21,7 +25,6 @@ class FeedFragment : Fragment() {
 
     private val capsules = mutableListOf<TimeCapsule>()
     private lateinit var adapter: FeedAdapter
-    private var listenerRegistration: ListenerRegistration? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,38 +39,50 @@ class FeedFragment : Fragment() {
         val safeBinding = binding ?: return
 
         adapter = FeedAdapter(capsules) { selectedCapsule ->
-            // Use Safe Args to navigate
             val action = FeedFragmentDirections.actionFeedFragmentToSelectedMemoryFragment(selectedCapsule)
             safeBinding.root.findNavController().navigate(action)
         }
         safeBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         safeBinding.recyclerViewFeed.adapter = adapter
 
-        // מאזינים לשינויים בקולקציה "time_capsules" וממיינים לפי openDate
-        listenerRegistration = FirebaseFirestore.getInstance()
-            .collection("time_capsules")
-            .orderBy("openDate")
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                    return@addSnapshotListener
-                }
-                if (snapshot != null && !snapshot.isEmpty) {
-                    capsules.clear()
-                    for (doc in snapshot.documents) {
-                        val capsule = doc.toObject(TimeCapsule::class.java)
-                        if (capsule != null) {
-                            capsules.add(capsule)
-                        }
-                    }
-                    adapter.notifyDataSetChanged()
-                }
+        // קריאה ראשונית לטעינת נתונים מ-Room
+        fetchCapsulesFromRoom()
+    }
+
+    // כל פעם שהמסך חוזר לפוקוס, מבצעים סנכרון מחדש מה-Firebase ומעדכנים את Room
+    override fun onResume() {
+        super.onResume()
+        SyncManager.syncFirebaseDataToRoom(requireContext())
+        // ניתן להוסיף קצת דיליי (או להשתמש במנגנון observer) כדי לוודא שהנתונים הוכנסו לפני קריאת הנתונים מ-Room
+        fetchCapsulesFromRoom()
+    }
+
+    private fun fetchCapsulesFromRoom() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = AppLocalDb.getDatabase(requireContext())
+            val capsuleEntities = db.timeCapsuleDao().getAllTimeCapsules()
+            val capsulesList = capsuleEntities.map { entity ->
+                TimeCapsule(
+                    id = entity.firebaseId,
+                    title = entity.title,
+                    content = entity.content,
+                    openDate = entity.openDate,
+                    imageUrl = entity.imageUrl,
+                    creatorName = entity.creatorName,
+                    creatorId = entity.creatorId
+                )
             }
+            withContext(Dispatchers.Main) {
+                capsules.clear()
+                capsules.addAll(capsulesList.sortedByDescending { it.openDate })
+                adapter.notifyDataSetChanged()
+                Log.d("FeedFragment", "Loaded ${capsules.size} capsules from Room")
+            }
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        listenerRegistration?.remove() // מפסיקים להאזין
         _binding = null
     }
 }

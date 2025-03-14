@@ -5,8 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "time_capsules")
 data class TimeCapsuleEntity(
-    @PrimaryKey(autoGenerate = true)
-    val localId: Int = 0,
+    @PrimaryKey
     val firebaseId: String = "",
     val title: String = "",
     val content: String = "",

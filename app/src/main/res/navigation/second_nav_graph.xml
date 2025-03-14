@@ -12,7 +12,7 @@
         tools:layout="@layout/fragment_profile">
         <action
             android:id="@+id/action_profileFragment_to_editProfileFragment"
-            app:destination="@id/editProfileFragment"/>
+            app:destination="@id/editProfileFragment" />
     </fragment>
 
     <fragment
@@ -35,15 +35,17 @@
             app:argType="com.example.backintime.Model.TimeCapsule" />
         <action
             android:id="@+id/action_selectedMemoryFragment_to_editMemoryFragment"
-            app:destination="@id/editMemoryFragment"/>
+            app:destination="@id/editMemoryFragment" />
     </fragment>
-
 
     <fragment
         android:id="@+id/editMemoryFragment"
         android:name="com.example.backintime.ui.post.EditMemoryFragment"
         android:label="fragment_edit_memory"
         tools:layout="@layout/fragment_edit_memory">
+        <argument
+            android:name="timeCapsule"
+            app:argType="com.example.backintime.Model.TimeCapsule" />
     </fragment>
 
     <fragment
@@ -53,7 +55,7 @@
         tools:layout="@layout/fragment_feed">
         <action
             android:id="@+id/action_feedFragment_to_selectedMemoryFragment"
-            app:destination="@id/selectedMemoryFragment"/>
+            app:destination="@id/selectedMemoryFragment" />
     </fragment>
 
     <fragment
@@ -75,4 +77,5 @@
             android:id="@+id/action_myMemoriesFragment_to_selectedMemoryFragment"
             app:destination="@id/selectedMemoryFragment" />
     </fragment>
+
 </navigation>

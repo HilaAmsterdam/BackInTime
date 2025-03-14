@@ -1,6 +1,5 @@
 package com.example.backintime.viewModel
 
-
 import androidx.lifecycle.*
 import com.example.backintime.Model.Dao.TimeCapsuleEntity
 import com.example.backintime.Repository.TimeCapsuleRepository
@@ -13,21 +12,21 @@ class TimeCapsuleViewModel(private val repository: TimeCapsuleRepository) : View
 
     fun loadCapsules() {
         viewModelScope.launch {
-            _capsules.value = repository.getAllLocalCapsules()
+            _capsules.value = repository.getAllTimeCapsules()
         }
     }
 
     fun insertCapsule(capsule: TimeCapsuleEntity) {
         viewModelScope.launch {
-            repository.insertCapsule(capsule)
+            repository.insertTimeCapsule(capsule)
             // לאחר השמירה, טען מחדש כדי לעדכן את רשימת הקפסולות
             loadCapsules()
         }
     }
 
-    fun deleteCapsule(localId: Int) {
+    fun deleteCapsule(capsule: TimeCapsuleEntity) {
         viewModelScope.launch {
-            repository.deleteCapsuleByLocalId(localId)
+            repository.deleteTimeCapsule(capsule)
             loadCapsules()
         }
     }

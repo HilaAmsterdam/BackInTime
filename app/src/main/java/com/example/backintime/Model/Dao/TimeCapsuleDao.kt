@@ -8,12 +8,19 @@ import com.example.backintime.Model.Dao.TimeCapsuleEntity
 
 @Dao
 interface TimeCapsuleDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTimeCapsule(timeCapsule: TimeCapsuleEntity)
 
     @Query("SELECT * FROM time_capsules ORDER BY openDate DESC")
     suspend fun getAllTimeCapsules(): List<TimeCapsuleEntity>
 
-    @Query("DELETE FROM time_capsules WHERE localId = :localId")
-    suspend fun deleteTimeCapsule(localId: Int)
+    @Query("DELETE FROM time_capsules WHERE firebaseId = :firebaseId")
+    suspend fun deleteTimeCapsule(firebaseId: String)
+
+    @Query("SELECT * FROM time_capsules WHERE creatorId = :creatorId ORDER BY openDate DESC")
+    suspend fun getTimeCapsulesByCreator(creatorId: String): List<TimeCapsuleEntity>
+
+    @Query("SELECT * FROM time_capsules WHERE firebaseId = :firebaseId")
+    suspend fun getMemoryByFirebaseId(firebaseId: String): TimeCapsuleEntity?
 }
