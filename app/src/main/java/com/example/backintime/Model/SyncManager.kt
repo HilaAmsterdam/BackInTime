@@ -12,6 +12,7 @@ object SyncManager {
         val localDb = AppLocalDb.getDatabase(context)
         firebaseModel.fetchTimeCapsulesFromFirebase { capsules ->
             CoroutineScope(Dispatchers.IO).launch {
+                localDb.timeCapsuleDao().clearTimeCapsules()
                 capsules.forEach { capsule ->
                     localDb.timeCapsuleDao().insertTimeCapsule(capsule)
                 }

@@ -13,6 +13,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.backintime.Model.AppLocalDb
+import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.R
 import com.example.backintime.databinding.FragmentSelectedMemoryBinding
@@ -53,6 +54,9 @@ class SelectedMemoryFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        // Call SyncManager to refresh local data from Firestore,
+        // ensuring that any deleted posts are removed from Room.
+        SyncManager.syncFirebaseDataToRoom(requireContext())
         refreshMemoryData()
     }
 
@@ -98,7 +102,7 @@ class SelectedMemoryFragment : Fragment() {
 
     private fun setupButtons(capsule: TimeCapsule) {
         binding?.let { safeBinding ->
-            // בדיקה שהפוסט שייך למשתמש הנוכחי בלבד
+            // Ensure only the post owner sees the edit and delete buttons.
             val currentUser = FirebaseAuth.getInstance().currentUser
             if (currentUser == null || currentUser.uid != capsule.creatorId) {
                 safeBinding.goToEditMemoryFab.visibility = View.GONE

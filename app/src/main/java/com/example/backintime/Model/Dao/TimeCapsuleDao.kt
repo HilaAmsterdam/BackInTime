@@ -23,4 +23,7 @@ interface TimeCapsuleDao {
 
     @Query("SELECT * FROM time_capsules WHERE firebaseId = :firebaseId")
     suspend fun getMemoryByFirebaseId(firebaseId: String): TimeCapsuleEntity?
+
+    @Query("DELETE FROM time_capsules")
+    suspend fun clearTimeCapsules()
 }
