@@ -45,15 +45,21 @@ class FeedFragment : Fragment() {
         safeBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         safeBinding.recyclerViewFeed.adapter = adapter
 
-        // קריאה ראשונית לטעינת נתונים מ-Room
+        // Set up the swipe-to-refresh behavior.
+        safeBinding.swipeRefreshLayout.setOnRefreshListener {
+            // Start the real-time sync; the data should update accordingly.
+            SyncManager.listenFirebaseDataToRoom(requireContext())
+            fetchCapsulesFromRoom()
+        }
+
+        // Initial load of data from Room
         fetchCapsulesFromRoom()
     }
 
-    // כל פעם שהמסך חוזר לפוקוס, מבצעים סנכרון מחדש מה-Firebase ומעדכנים את Room
+    // Every time the fragment resumes, we start the real-time sync and refresh data.
     override fun onResume() {
         super.onResume()
         SyncManager.listenFirebaseDataToRoom(requireContext())
-        // ניתן להוסיף קצת דיליי (או להשתמש במנגנון observer) כדי לוודא שהנתונים הוכנסו לפני קריאת הנתונים מ-Room
         fetchCapsulesFromRoom()
     }
 
@@ -76,6 +82,7 @@ class FeedFragment : Fragment() {
                 capsules.clear()
                 capsules.addAll(capsulesList.sortedByDescending { it.openDate })
                 adapter.notifyDataSetChanged()
+                binding?.swipeRefreshLayout?.isRefreshing = false // Stop the progress indicator.
                 Log.d("FeedFragment", "Loaded ${capsules.size} capsules from Room")
             }
         }

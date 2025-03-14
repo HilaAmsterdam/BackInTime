@@ -28,6 +28,7 @@ firebaseAuthKtx = "22.1.2"
 navigationSafeArgsGradlePluginVersion = "2.8.8"
 picasso = "2.71828"
 roomKtx = "2.6.1"
+swiperefreshlayoutVersion = "1.1.0"
 workRuntimeKtx = "2.10.0"
 
 [libraries]
@@ -42,6 +43,7 @@ androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx",
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomKtx" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomKtx" }
+androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayoutVersion" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 cloudinary-android = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroid" }
 firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }

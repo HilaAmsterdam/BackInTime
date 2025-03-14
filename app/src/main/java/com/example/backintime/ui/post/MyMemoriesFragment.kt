@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.Model.AppLocalDb
+import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentMyMemoriesBinding
 import com.example.backintime.ui.post.FeedAdapter
@@ -37,13 +38,19 @@ class MyMemoriesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        _binding?.let { bindingNonNull ->
+        binding?.let { bindingNonNull ->
             adapter = FeedAdapter(myCapsules) { selectedCapsule ->
                 val action = MyMemoriesFragmentDirections.actionMyMemoriesFragmentToSelectedMemoryFragment(selectedCapsule)
                 bindingNonNull.root.findNavController().navigate(action)
             }
             bindingNonNull.recyclerViewMyMemories.layoutManager = LinearLayoutManager(requireContext())
             bindingNonNull.recyclerViewMyMemories.adapter = adapter
+
+            // Set up swipe-to-refresh: When the user swipes down, perform a sync and reload data.
+            bindingNonNull.swipeRefreshLayout.setOnRefreshListener {
+                SyncManager.listenFirebaseDataToRoom(requireContext())
+                fetchUserCapsules(FirebaseAuth.getInstance().currentUser?.uid ?: "")
+            }
         }
 
         val user = FirebaseAuth.getInstance().currentUser
@@ -73,6 +80,8 @@ class MyMemoriesFragment : Fragment() {
                 myCapsules.clear()
                 myCapsules.addAll(capsulesList)
                 adapter.notifyDataSetChanged()
+                // Stop the refreshing animation
+                binding?.swipeRefreshLayout?.isRefreshing = false
             }
         }
     }
