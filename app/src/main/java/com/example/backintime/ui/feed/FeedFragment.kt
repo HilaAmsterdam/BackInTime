@@ -1,7 +1,6 @@
 package com.example.backintime.ui.feed
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,7 +25,6 @@ class FeedFragment : Fragment() {
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding
 
-    // Use a list of FeedItem for grouped data
     private val feedItems = mutableListOf<FeedItem>()
     private lateinit var adapter: FeedAdapter
 
@@ -49,13 +47,11 @@ class FeedFragment : Fragment() {
         safeBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         safeBinding.recyclerViewFeed.adapter = adapter
 
-        // Set up swipe-to-refresh behavior.
         safeBinding.swipeRefreshLayout.setOnRefreshListener {
             SyncManager.listenFirebaseDataToRoom(requireContext())
             fetchCapsulesFromRoom()
         }
 
-        // Initial load from Room
         fetchCapsulesFromRoom()
     }
 
@@ -80,16 +76,13 @@ class FeedFragment : Fragment() {
                     creatorId = entity.creatorId
                 )
             }
-            // Sort by openDate ascending (closest date first)
             val sortedCapsules = capsulesList.sortedBy { it.openDate }
-            // Group the capsules into FeedItems
             val groupedItems = prepareFeedItems(sortedCapsules)
             withContext(Dispatchers.Main) {
                 feedItems.clear()
                 feedItems.addAll(groupedItems)
                 adapter.notifyDataSetChanged()
                 binding?.swipeRefreshLayout?.isRefreshing = false
-                Log.d("FeedFragment", "Loaded ${feedItems.size} items (headers and posts) from Room")
             }
         }
     }
@@ -97,17 +90,28 @@ class FeedFragment : Fragment() {
     private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
         val items = mutableListOf<FeedItem>()
         val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
-        // Group capsules by the formatted openDate.
-        val grouped = capsules.groupBy { dateFormat.format(it.openDate) }
-        // Sort the keys (dates) ascending (closest date first)
-        val sortedKeys = grouped.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
-        for (date in sortedKeys) {
-            items.add(FeedItem.Header(date))
-            val posts = grouped[date]?.sortedBy { it.openDate } ?: emptyList()
-            posts.forEach { items.add(FeedItem.Post(it)) }
+        val now = System.currentTimeMillis()
+
+        val upcomingCapsules = capsules.filter { it.openDate > now }
+        val openedCapsules = capsules.filter { it.openDate <= now }
+
+        if (upcomingCapsules.isNotEmpty()) {
+            val groupedUpcoming = upcomingCapsules.groupBy { dateFormat.format(it.openDate) }
+            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
+            for (date in sortedUpcomingKeys) {
+                items.add(FeedItem.Header("$date"))
+                groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
+            }
         }
+
+        if (openedCapsules.isNotEmpty()) {
+            items.add(FeedItem.Header("Opened"))
+            openedCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
+        }
+
         return items
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

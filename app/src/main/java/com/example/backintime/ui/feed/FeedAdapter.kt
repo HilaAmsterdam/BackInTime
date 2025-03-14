@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.example.backintime.Model.FeedItem
 import com.example.backintime.Model.TimeCapsule
@@ -55,8 +56,24 @@ class FeedAdapter(
 
     class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val headerTitle: TextView = itemView.findViewById(R.id.headerTitle)
+
         fun bind(header: FeedItem.Header) {
-            headerTitle.text = "Open Date is: ${header.date}"
+            if (header.date == "Opened") {
+                headerTitle.text = "OPENED MEMORIES"
+                headerTitle.textSize = 32f
+                headerTitle.setTextColor(android.graphics.Color.parseColor("#5FB3F9"))
+                headerTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
+                val params = headerTitle.layoutParams as ConstraintLayout.LayoutParams
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                headerTitle.layoutParams = params
+            } else {
+                headerTitle.text = "Open Date is: ${header.date}"
+                headerTitle.textSize = 18f
+                headerTitle.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
+                val params = headerTitle.layoutParams as ConstraintLayout.LayoutParams
+                params.width = 0
+                headerTitle.layoutParams = params
+            }
         }
     }
 
@@ -71,6 +88,7 @@ class FeedAdapter(
             } else {
                 binding.memoryImage.setImageResource(R.drawable.logo_back_in_time)
             }
+
             binding.memoryTitle.text = capsule.title
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             binding.memoryDate.text = dateFormat.format(capsule.openDate)

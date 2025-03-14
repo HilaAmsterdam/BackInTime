@@ -48,7 +48,6 @@ class MyMemoriesFragment : Fragment() {
             bindingNonNull.recyclerViewMyMemories.layoutManager = LinearLayoutManager(requireContext())
             bindingNonNull.recyclerViewMyMemories.adapter = adapter
 
-            // Set up swipe-to-refresh.
             bindingNonNull.swipeRefreshLayout.setOnRefreshListener {
                 SyncManager.listenFirebaseDataToRoom(requireContext())
                 fetchUserCapsules(FirebaseAuth.getInstance().currentUser?.uid ?: "")
@@ -78,7 +77,6 @@ class MyMemoriesFragment : Fragment() {
                     creatorId = entity.creatorId
                 )
             }
-            // Sort and group posts by openDate.
             val sortedCapsules = capsulesList.sortedBy { it.openDate }
             val groupedItems = prepareFeedItems(sortedCapsules)
             withContext(Dispatchers.Main) {
@@ -93,12 +91,25 @@ class MyMemoriesFragment : Fragment() {
     private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
         val items = mutableListOf<FeedItem>()
         val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
-        val grouped = capsules.groupBy { dateFormat.format(it.openDate) }
-        val sortedKeys = grouped.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
-        for (date in sortedKeys) {
-            items.add(FeedItem.Header(date))
-            grouped[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
+        val now = System.currentTimeMillis()
+
+        val upcomingCapsules = capsules.filter { it.openDate > now }
+        val openedCapsules = capsules.filter { it.openDate <= now }
+
+        if (upcomingCapsules.isNotEmpty()) {
+            val groupedUpcoming = upcomingCapsules.groupBy { dateFormat.format(it.openDate) }
+            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
+            for (date in sortedUpcomingKeys) {
+                items.add(FeedItem.Header("$date"))
+                groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
+            }
         }
+
+        if (openedCapsules.isNotEmpty()) {
+            items.add(FeedItem.Header("Opened"))
+            openedCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
+        }
+
         return items
     }
 

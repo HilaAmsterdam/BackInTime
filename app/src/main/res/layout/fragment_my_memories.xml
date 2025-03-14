@@ -20,7 +20,7 @@
             android:layout_marginTop="64dp"
             android:text="MY MEMORIES"
             android:textColor="#5FB3F9"
-            android:textSize="24sp"
+            android:textSize="32sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

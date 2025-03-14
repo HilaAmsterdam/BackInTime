@@ -14,11 +14,7 @@ class TimeCapsuleRepository(private val dao: TimeCapsuleDao) {
     }
 
     suspend fun deleteTimeCapsule(timeCapsule: TimeCapsuleEntity) {
-        // במקום להעביר localId, נעביר את ה-firebaseId כמפתח למחיקה
         dao.deleteTimeCapsule(timeCapsule.firebaseId)
     }
 
-    suspend fun getTimeCapsulesByCreator(creatorId: String): List<TimeCapsuleEntity> {
-        return dao.getTimeCapsulesByCreator(creatorId)
-    }
 }
