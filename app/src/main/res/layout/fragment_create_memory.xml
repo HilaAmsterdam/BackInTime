@@ -82,16 +82,30 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
 
-    <ImageView
-        android:id="@+id/imagePreview"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/imageCard"
         android:layout_width="320dp"
         android:layout_height="200dp"
         android:layout_marginTop="24dp"
-        android:scaleType="centerCrop"
-        android:background="@android:color/darker_gray"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="2dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/captureMemoryButton" />
+        app:layout_constraintTop_toBottomOf="@+id/captureMemoryButton">
+
+        <ImageView
+            android:id="@+id/imagePreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="@android:color/darker_gray"
+            android:contentDescription="Memory Image Preview" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/titleInputLayout"
@@ -102,7 +116,7 @@
         app:boxStrokeWidth="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imagePreview">
+        app:layout_constraintTop_toBottomOf="@+id/imageCard">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/memoryTitleInput"
