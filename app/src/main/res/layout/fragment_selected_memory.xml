@@ -20,7 +20,7 @@
         app:layout_constraintBottom_toTopOf="@+id/navigation"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_default="wrap" >
+        app:layout_constraintHeight_default="wrap">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,12 +34,25 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/userProfileImage"
+                <FrameLayout
                     android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_profile_placeholder" />
+                    android:layout_height="50dp">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/userProfileImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:background="#5B5B5B" />
+
+                    <ProgressBar
+                        android:id="@+id/profileProgressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:visibility="gone"
+                        android:indeterminateTint="#242424"/>
+                </FrameLayout>
 
                 <TextView
                     android:id="@+id/memoryEmail"
@@ -51,13 +64,25 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/memoryImage"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
-                android:layout_marginTop="12dp"
-                android:background="#5B5B5B"
-                android:scaleType="centerCrop" />
+                android:layout_marginTop="12dp">
+
+                <ImageView
+                    android:id="@+id/memoryImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#5B5B5B"
+                    android:scaleType="centerCrop" />
+
+                <ProgressBar
+                    android:id="@+id/memoryProgressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/memoryTitle"

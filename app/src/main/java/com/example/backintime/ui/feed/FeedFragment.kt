@@ -1,7 +1,6 @@
 package com.example.backintime.ui.feed
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.Model.AppLocalDb
+import com.example.backintime.Model.FeedItem
 import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentFeedBinding
@@ -17,13 +17,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class FeedFragment : Fragment() {
 
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding
 
-    private val capsules = mutableListOf<TimeCapsule>()
+    private val feedItems = mutableListOf<FeedItem>()
     private lateinit var adapter: FeedAdapter
 
     override fun onCreateView(
@@ -38,22 +40,24 @@ class FeedFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
 
-        adapter = FeedAdapter(capsules) { selectedCapsule ->
+        adapter = FeedAdapter(feedItems) { selectedCapsule ->
             val action = FeedFragmentDirections.actionFeedFragmentToSelectedMemoryFragment(selectedCapsule)
             safeBinding.root.findNavController().navigate(action)
         }
         safeBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         safeBinding.recyclerViewFeed.adapter = adapter
 
-        // קריאה ראשונית לטעינת נתונים מ-Room
+        safeBinding.swipeRefreshLayout.setOnRefreshListener {
+            SyncManager.listenFirebaseDataToRoom(requireContext())
+            fetchCapsulesFromRoom()
+        }
+
         fetchCapsulesFromRoom()
     }
 
-    // כל פעם שהמסך חוזר לפוקוס, מבצעים סנכרון מחדש מה-Firebase ומעדכנים את Room
     override fun onResume() {
         super.onResume()
         SyncManager.listenFirebaseDataToRoom(requireContext())
-        // ניתן להוסיף קצת דיליי (או להשתמש במנגנון observer) כדי לוודא שהנתונים הוכנסו לפני קריאת הנתונים מ-Room
         fetchCapsulesFromRoom()
     }
 
@@ -72,14 +76,42 @@ class FeedFragment : Fragment() {
                     creatorId = entity.creatorId
                 )
             }
+            val sortedCapsules = capsulesList.sortedBy { it.openDate }
+            val groupedItems = prepareFeedItems(sortedCapsules)
             withContext(Dispatchers.Main) {
-                capsules.clear()
-                capsules.addAll(capsulesList.sortedByDescending { it.openDate })
+                feedItems.clear()
+                feedItems.addAll(groupedItems)
                 adapter.notifyDataSetChanged()
-                Log.d("FeedFragment", "Loaded ${capsules.size} capsules from Room")
+                binding?.swipeRefreshLayout?.isRefreshing = false
             }
         }
     }
+
+    private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
+        val items = mutableListOf<FeedItem>()
+        val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+        val now = System.currentTimeMillis()
+
+        val upcomingCapsules = capsules.filter { it.openDate > now }
+        val openedCapsules = capsules.filter { it.openDate <= now }
+
+        if (upcomingCapsules.isNotEmpty()) {
+            val groupedUpcoming = upcomingCapsules.groupBy { dateFormat.format(it.openDate) }
+            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
+            for (date in sortedUpcomingKeys) {
+                items.add(FeedItem.Header("$date"))
+                groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
+            }
+        }
+
+        if (openedCapsules.isNotEmpty()) {
+            items.add(FeedItem.Header("Opened"))
+            openedCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
+        }
+
+        return items
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
