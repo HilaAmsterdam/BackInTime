@@ -10,6 +10,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.R
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -26,7 +27,15 @@ class NotificationWorker(
                 Log.d("NotificationWorker", "Worker started, found ${capsules.size} capsules")
 
                 val now = System.currentTimeMillis()
-                val filteredCapsules = capsules.filter { it.openDate <= now && !it.notified }
+                // קבלת מזהה המשתמש הנוכחי
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+                // סינון הקפסולות כך שיתקבלו רק הקפסולות ששייך למשתמש הנוכחי
+                val filteredCapsules = capsules.filter { capsule ->
+                    capsule.openDate <= now && !capsule.notified &&
+                            currentUserId != null && capsule.creatorId == currentUserId
+                }
+
                 Log.d("NotificationWorker", "Capsules to notify: ${filteredCapsules.size}")
 
                 filteredCapsules.forEach { capsule ->
@@ -41,8 +50,6 @@ class NotificationWorker(
             }
         }
     }
-
-
 
     private fun sendNotification(title: String, content: String) {
         val notificationManager =
