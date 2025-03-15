@@ -39,6 +39,13 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
+
+    private fun simulateNewCapsuleInsertion() {
+
+        val oneTimeWorkRequest = OneTimeWorkRequestBuilder<NotificationWorker>().build()
+        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -49,18 +56,18 @@ class SecondActivity : AppCompatActivity() {
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.navigation)
         val navController = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
             ?.findNavController()
-
         navController?.let {
             bottomNavigationView.setupWithNavController(it)
         }
 
-        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(15, TimeUnit.MINUTES).build()
+
+        val periodicWorkRequest = PeriodicWorkRequestBuilder<NotificationWorker>(15, TimeUnit.MINUTES).build()
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "TimeCapsuleNotification",
             ExistingPeriodicWorkPolicy.KEEP,
-            workRequest
+            periodicWorkRequest
         )
-        val testWork = OneTimeWorkRequestBuilder<NotificationWorker>().build()
-        WorkManager.getInstance(this).enqueue(testWork)
+
+        simulateNewCapsuleInsertion()
     }
 }
