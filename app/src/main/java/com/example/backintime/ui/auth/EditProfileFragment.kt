@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.text.InputType
+import android.util.Log
 import android.widget.EditText
 import android.view.LayoutInflater
 import android.view.View
@@ -40,11 +41,11 @@ class EditProfileFragment : Fragment() {
         if (success) {
             capturedImageUri?.let { uri ->
                 safeBinding.editProfileImage.setImageURI(uri)
+                Log.d("EditProfile", "Image captured successfully: $uri")
             }
         } else {
-            if (isAdded && context != null) {
-                Toast.makeText(context, "Failed to capture image", Toast.LENGTH_SHORT).show()
-            }
+            Log.e("EditProfile", "Failed to capture image")
+            Toast.makeText(context, "Failed to capture image", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -54,6 +55,7 @@ class EditProfileFragment : Fragment() {
         if (uri != null) {
             capturedImageUri = uri
             safeBinding.editProfileImage.setImageURI(uri)
+            Log.d("EditProfile", "Image selected from gallery: $uri")
         }
     }
 
@@ -74,6 +76,7 @@ class EditProfileFragment : Fragment() {
         if (currentUser != null) {
             // מציגים את האימייל הקיים
             safeBinding.editProfileEmail.setText(currentUser.email)
+            Log.d("EditProfile", "Current email: ${currentUser.email}")
             // טוענים את התמונה הנוכחית מ-Firestore
             FirebaseFirestore.getInstance()
                 .collection("users")
@@ -82,6 +85,7 @@ class EditProfileFragment : Fragment() {
                 .addOnSuccessListener { doc ->
                     if (!isAdded) return@addOnSuccessListener
                     val url = doc.getString("profileImageUrl")
+                    Log.d("EditProfile", "Loaded profileImageUrl: $url")
                     if (!url.isNullOrEmpty()) {
                         Picasso.get()
                             .load(url)
@@ -90,7 +94,8 @@ class EditProfileFragment : Fragment() {
                             .into(safeBinding.editProfileImage)
                     }
                 }
-                .addOnFailureListener {
+                .addOnFailureListener { e ->
+                    Log.e("EditProfile", "Failed to load profile image: ${e.message}")
                     if (isAdded && context != null) {
                         Toast.makeText(context, "Failed to load current profile image", Toast.LENGTH_SHORT).show()
                     }
@@ -110,9 +115,11 @@ class EditProfileFragment : Fragment() {
                                 "com.example.backintime.fileprovider",
                                 imageFile
                             )
+                            Log.d("EditProfile", "Launching camera with URI: $capturedImageUri")
                             takePictureLauncher.launch(capturedImageUri)
                         }
                         1 -> { // גלריה
+                            Log.d("EditProfile", "Launching gallery picker")
                             pickImageLauncher.launch("image/*")
                         }
                     }
@@ -127,9 +134,8 @@ class EditProfileFragment : Fragment() {
 
             // בדיקת סיסמאות
             if (newPassword.isNotEmpty() && newPassword != confirmPassword) {
-                if (isAdded && context != null) {
-                    Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
-                }
+                Log.d("EditProfile", "Passwords do not match.")
+                Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -139,35 +145,41 @@ class EditProfileFragment : Fragment() {
 
                 // עדכון אימייל – אם שונה מהאימייל הנוכחי
                 if (newEmail != user.email) {
+                    Log.d("EditProfile", "Attempting to update email from ${user.email} to $newEmail")
                     pendingUpdates.incrementAndGet()
                     user.updateEmail(newEmail).addOnCompleteListener { task ->
-                        if (!isAdded) return@addOnCompleteListener
                         if (task.isSuccessful) {
-                            // עדכון המסמך ב-Firestore גם כן
+                            Log.d("EditProfile", "Email update successful.")
+                            // עדכון המסמך ב-Firestore
                             FirebaseFirestore.getInstance()
                                 .collection("users")
                                 .document(user.uid)
                                 .update("email", newEmail)
                                 .addOnSuccessListener {
+                                    Log.d("EditProfile", "Firestore email update successful.")
                                     Toast.makeText(context, "Email updated", Toast.LENGTH_SHORT).show()
                                     if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
                                         findNavController().popBackStack()
                                     }
                                 }
                                 .addOnFailureListener { e ->
+                                    Log.e("EditProfile", "Firestore email update failed: ${e.message}")
                                     Toast.makeText(context, "Failed to update email in Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
                                     if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
                                         findNavController().popBackStack()
                                     }
                                 }
                         } else {
+                            Log.e("EditProfile", "Email update failed: ${task.exception}")
                             // אם נדרש re-authentication
                             if (task.exception is FirebaseAuthRecentLoginRequiredException) {
+                                Log.d("EditProfile", "Re-authentication required for email update.")
                                 showReauthenticationDialog(user, newEmail) { success ->
-                                    if (!isAdded) return@showReauthenticationDialog
                                     if (success) {
+                                        Log.d("EditProfile", "Email updated after re-authentication.")
                                         Toast.makeText(context, "Email updated after re-authentication", Toast.LENGTH_SHORT).show()
                                     } else {
+                                        Log.e("EditProfile", "Failed to update email after re-authentication.")
                                         Toast.makeText(context, "Failed to update email after re-authentication", Toast.LENGTH_SHORT).show()
                                     }
                                     if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
@@ -186,12 +198,14 @@ class EditProfileFragment : Fragment() {
 
                 // עדכון סיסמה אם נדרש
                 if (newPassword.isNotEmpty()) {
+                    Log.d("EditProfile", "Attempting to update password.")
                     pendingUpdates.incrementAndGet()
                     user.updatePassword(newPassword).addOnCompleteListener { task ->
-                        if (!isAdded) return@addOnCompleteListener
                         if (task.isSuccessful) {
+                            Log.d("EditProfile", "Password update successful.")
                             Toast.makeText(context, "Password updated", Toast.LENGTH_SHORT).show()
                         } else {
+                            Log.e("EditProfile", "Password update failed: ${task.exception}")
                             Toast.makeText(context, "Failed to update password: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                         }
                         if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
@@ -203,28 +217,28 @@ class EditProfileFragment : Fragment() {
                 // העלאת תמונה ל-Cloudinary אם נבחרה תמונה חדשה
                 val localUri = capturedImageUri
                 if (localUri != null) {
+                    Log.d("EditProfile", "Attempting to upload new profile image: $localUri")
                     pendingUpdates.incrementAndGet()
                     CloudinaryHelper(requireContext()).uploadImage(
                         localUri,
                         onSuccess = { imageUrl ->
+                            Log.d("EditProfile", "Image upload successful. URL: $imageUrl")
                             FirebaseFirestore.getInstance()
                                 .collection("users")
                                 .document(user.uid)
                                 .update("profileImageUrl", imageUrl)
                                 .addOnSuccessListener {
-                                    if (isAdded) {
-                                        Toast.makeText(context, "Profile image updated", Toast.LENGTH_SHORT).show()
-                                        Picasso.get()
-                                            .load(imageUrl)
-                                            .placeholder(R.drawable.baseline_account_circle_24)
-                                            .error(R.drawable.baseline_account_circle_24)
-                                            .into(safeBinding.editProfileImage)
-                                    }
+                                    Log.d("EditProfile", "Firestore profile image update successful.")
+                                    Toast.makeText(context, "Profile image updated", Toast.LENGTH_SHORT).show()
+                                    Picasso.get()
+                                        .load(imageUrl)
+                                        .placeholder(R.drawable.baseline_account_circle_24)
+                                        .error(R.drawable.baseline_account_circle_24)
+                                        .into(safeBinding.editProfileImage)
                                 }
                                 .addOnFailureListener { e ->
-                                    if (isAdded) {
-                                        Toast.makeText(context, "Failed to update profile image: ${e.message}", Toast.LENGTH_SHORT).show()
-                                    }
+                                    Log.e("EditProfile", "Firestore profile image update failed: ${e.message}")
+                                    Toast.makeText(context, "Failed to update profile image: ${e.message}", Toast.LENGTH_SHORT).show()
                                 }
                                 .addOnCompleteListener {
                                     if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
@@ -233,9 +247,8 @@ class EditProfileFragment : Fragment() {
                                 }
                         },
                         onFailure = { error ->
-                            if (isAdded) {
-                                Toast.makeText(context, "Image upload error: $error", Toast.LENGTH_SHORT).show()
-                            }
+                            Log.e("EditProfile", "Image upload error: $error")
+                            Toast.makeText(context, "Image upload error: $error", Toast.LENGTH_SHORT).show()
                             if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
                                 findNavController().popBackStack()
                             }
@@ -259,19 +272,23 @@ class EditProfileFragment : Fragment() {
         builder.setView(input)
         builder.setPositiveButton("Confirm") { dialog, which ->
             val currentPassword = input.text.toString()
+            Log.d("EditProfile", "Reauthentication: user entered password.")
             if (currentPassword.isNotEmpty()) {
                 val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
                 user.reauthenticate(credential).addOnCompleteListener { reauthTask ->
-                    if (!isAdded) return@addOnCompleteListener
                     if (reauthTask.isSuccessful) {
+                        Log.d("EditProfile", "Reauthentication successful.")
                         user.updateEmail(newEmail).addOnCompleteListener { updateTask ->
+                            Log.d("EditProfile", "Email update after reauthentication: success=${updateTask.isSuccessful}")
                             callback(updateTask.isSuccessful)
                         }
                     } else {
+                        Log.e("EditProfile", "Reauthentication failed: ${reauthTask.exception}")
                         callback(false)
                     }
                 }
             } else {
+                Log.e("EditProfile", "Reauthentication failed: no password provided.")
                 callback(false)
             }
         }
