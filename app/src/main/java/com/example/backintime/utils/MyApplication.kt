@@ -8,7 +8,6 @@ import com.google.firebase.auth.FirebaseAuth
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // הגדרת קוד שפה קבוע לעברית
         FirebaseAuth.getInstance().setLanguageCode("he")
         Log.d("MyApplication", "Firebase language code: ${FirebaseAuth.getInstance().languageCode}")
 

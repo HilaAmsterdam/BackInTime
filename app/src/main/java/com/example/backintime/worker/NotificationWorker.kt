@@ -27,10 +27,8 @@ class NotificationWorker(
                 Log.d("NotificationWorker", "Worker started, found ${capsules.size} capsules")
 
                 val now = System.currentTimeMillis()
-                // קבלת מזהה המשתמש הנוכחי
                 val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
-                // סינון הקפסולות כך שיתקבלו רק הקפסולות ששייך למשתמש הנוכחי
                 val filteredCapsules = capsules.filter { capsule ->
                     capsule.openDate <= now && !capsule.notified &&
                             currentUserId != null && capsule.creatorId == currentUserId
