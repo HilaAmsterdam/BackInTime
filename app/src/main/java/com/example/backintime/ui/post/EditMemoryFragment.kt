@@ -52,7 +52,6 @@ class EditMemoryFragment : Fragment() {
         }
     }
 
-    // Launcher לבחירת תמונה מהגלריה
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         binding?.let { safeBinding ->
             if (uri != null) {
@@ -74,10 +73,8 @@ class EditMemoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
 
-        // קבלת הפוסט (TimeCapsule) שעבר כארגומנט
         val memory: TimeCapsule = args.timeCapsule
 
-        // מילוי השדות הקיימים
         safeBinding.editMemoryTitle.setText(memory.title)
         safeBinding.editMemoryDescription.setText(memory.content)
         val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
@@ -174,7 +171,6 @@ class EditMemoryFragment : Fragment() {
             )
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Memory updated", Toast.LENGTH_SHORT).show()
-                // עדכון מסד הנתונים המקומי (Room)
                 lifecycleScope.launch(Dispatchers.IO) {
                     val localDb = AppLocalDb.getDatabase(requireContext())
                     localDb.timeCapsuleDao().insertTimeCapsule(

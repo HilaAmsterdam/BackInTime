@@ -12,5 +12,6 @@ data class TimeCapsuleEntity(
     val openDate: Long = 0,
     val imageUrl: String = "",
     val creatorName: String = "",
-    val creatorId: String = ""
+    val creatorId: String = "",
+    val notified: Boolean = false
 )

@@ -178,7 +178,6 @@ class CreateMemoryFragment : Fragment() {
         docRef.set(capsule)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Time Capsule created!", Toast.LENGTH_SHORT).show()
-                // הוספת הזיכרון גם למסד הנתונים המקומי (Room)
                 CoroutineScope(Dispatchers.IO).launch {
                     val localDb = AppLocalDb.getDatabase(requireContext())
                     localDb.timeCapsuleDao().insertTimeCapsule(

@@ -14,6 +14,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
+import com.example.backintime.Model.User
 import com.example.backintime.R
 import com.example.backintime.databinding.FragmentSelectedMemoryBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -158,17 +159,16 @@ class SelectedMemoryFragment : Fragment() {
     }
 
     private fun loadUserProfileImage(creatorId: String) {
-        FirebaseFirestore.getInstance()
-            .collection("users")
-            .document(creatorId)
-            .get()
-            .addOnSuccessListener { document ->
-                val profileImageUrl = document.getString("profileImageUrl") ?: ""
-                binding?.let { safeBinding ->
-                    if (profileImageUrl.isNotEmpty()) {
+        // First try to load the user data from Room
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = AppLocalDb.getDatabase(requireContext())
+            val cachedUser = db.userDao().getUserById(creatorId)
+            if (cachedUser != null && cachedUser.profileImageUrl.isNotEmpty()) {
+                withContext(Dispatchers.Main) {
+                    binding?.let { safeBinding ->
                         safeBinding.profileProgressBar.visibility = View.VISIBLE
                         Picasso.get()
-                            .load(profileImageUrl)
+                            .load(cachedUser.profileImageUrl)
                             .into(safeBinding.userProfileImage, object : com.squareup.picasso.Callback {
                                 override fun onSuccess() {
                                     safeBinding.profileProgressBar.visibility = View.GONE
@@ -177,12 +177,50 @@ class SelectedMemoryFragment : Fragment() {
                                     safeBinding.profileProgressBar.visibility = View.GONE
                                 }
                             })
-                    } else {
-                        safeBinding.userProfileImage.setImageResource(R.drawable.ic_profile_placeholder)
-                        safeBinding.profileProgressBar.visibility = View.GONE
                     }
                 }
+            } else {
+                // If not found locally, fetch from Firestore
+                FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(creatorId)
+                    .get()
+                    .addOnSuccessListener { document ->
+                        val profileImageUrl = document.getString("profileImageUrl") ?: ""
+                        val email = document.getString("email") ?: ""
+                        val user = User(uid = creatorId, email = email, profileImageUrl = profileImageUrl)
+                        // Save the fetched user info to Room for caching
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            val db = AppLocalDb.getDatabase(requireContext())
+                            db.userDao().insertUser(user)
+                        }
+                        binding?.let { safeBinding ->
+                            if (profileImageUrl.isNotEmpty()) {
+                                safeBinding.profileProgressBar.visibility = View.VISIBLE
+                                Picasso.get()
+                                    .load(profileImageUrl)
+                                    .into(safeBinding.userProfileImage, object : com.squareup.picasso.Callback {
+                                        override fun onSuccess() {
+                                            safeBinding.profileProgressBar.visibility = View.GONE
+                                        }
+                                        override fun onError(e: Exception?) {
+                                            safeBinding.profileProgressBar.visibility = View.GONE
+                                        }
+                                    })
+                            } else {
+                                safeBinding.userProfileImage.setImageResource(R.drawable.ic_profile_placeholder)
+                                safeBinding.profileProgressBar.visibility = View.GONE
+                            }
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        binding?.let { safeBinding ->
+                            safeBinding.userProfileImage.setImageResource(R.drawable.ic_profile_placeholder)
+                            safeBinding.profileProgressBar.visibility = View.GONE
+                        }
+                    }
             }
+        }
     }
 
     override fun onDestroyView() {
