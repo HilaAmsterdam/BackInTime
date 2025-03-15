@@ -17,7 +17,7 @@
         android:theme="@style/Theme.BackInTime"
         tools:targetApi="tiramisu"
         tools:replace="android:fullBackupContent"
-        android:enableOnBackInvokedCallback="true">>
+        android:enableOnBackInvokedCallback="true">
 
 
         <provider
