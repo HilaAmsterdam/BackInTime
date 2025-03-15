@@ -30,7 +30,6 @@ class RegisterFragment : Fragment() {
     private val firebaseModel = FirebaseModel()
     private var capturedImageUri: Uri? = null
 
-    // Launcher לצילום תמונה מהמצלמה
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         binding?.let { safeBinding ->
             if (success) {
@@ -43,7 +42,6 @@ class RegisterFragment : Fragment() {
         }
     }
 
-    // Launcher לבחירת תמונה מהגלריה
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         binding?.let { safeBinding ->
             if (uri != null) {
@@ -77,7 +75,7 @@ class RegisterFragment : Fragment() {
                 .setTitle("Choose Image Source")
                 .setItems(options) { _, which ->
                     when (which) {
-                        0 -> { // מצלמה
+                        0 -> {
                             val imageFile = createImageFile()
                             capturedImageUri = FileProvider.getUriForFile(
                                 requireContext(),
@@ -86,7 +84,7 @@ class RegisterFragment : Fragment() {
                             )
                             takePictureLauncher.launch(capturedImageUri)
                         }
-                        1 -> { // גלריה
+                        1 -> {
                             pickImageLauncher.launch("image/*")
                         }
                     }
@@ -104,7 +102,6 @@ class RegisterFragment : Fragment() {
                         firebaseModel.registerUser(email, password, imageUrl) { success, errorMessage ->
                             if (success) {
                                 Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show()
-                                // סנכרון נתונים מ-Firebase ל- Room לאחר רישום מוצלח
                                 SyncManager.listenFirebaseDataToRoom(requireContext())
                                 val intent = Intent(requireContext(), SecondActivity::class.java)
                                 startActivity(intent)
@@ -120,7 +117,6 @@ class RegisterFragment : Fragment() {
                     firebaseModel.registerUser(email, password, null) { success, errorMessage ->
                         if (success) {
                             Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show()
-                            // סנכרון נתונים מ-Firebase ל- Room לאחר רישום מוצלח
                             SyncManager.listenFirebaseDataToRoom(requireContext())
                             val intent = Intent(requireContext(), SecondActivity::class.java)
                             startActivity(intent)
