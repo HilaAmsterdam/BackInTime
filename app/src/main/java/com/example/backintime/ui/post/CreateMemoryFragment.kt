@@ -4,18 +4,24 @@ import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.text.Html
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.Model.Dao.TimeCapsuleEntity
 import com.example.backintime.R
+import com.example.backintime.api.RetrofitInstance
 import com.example.backintime.databinding.FragmentCreateMemoryBinding
 import com.example.backintime.utils.CloudinaryHelper
 import com.google.firebase.auth.FirebaseAuth
@@ -78,10 +84,10 @@ class CreateMemoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
 
+        // Image selection buttons
         safeBinding.addFromGallaryButton.setOnClickListener {
             pickImageLauncher.launch("image/*")
         }
-
         safeBinding.captureMemoryButton.setOnClickListener {
             val imageFile = createImageFile()
             capturedImageUri = FileProvider.getUriForFile(
@@ -91,10 +97,34 @@ class CreateMemoryFragment : Fragment() {
             )
             takePictureLauncher.launch(capturedImageUri)
         }
-
         safeBinding.memoryDateInput.setOnClickListener {
             showDatePickerDialog()
         }
+
+        // Set up Material Exposed Dropdown Menu for emoji selection
+        val emojiAutoComplete = safeBinding.emojiAutoCompleteTextView
+        lifecycleScope.launch {
+            try {
+                val emojiList = RetrofitInstance.api.getAllEmojis()
+                val emojiStrings = emojiList.map { emoji ->
+                    val htmlCode = emoji.htmlCode.firstOrNull() ?: "&#128528;"
+                    Html.fromHtml(htmlCode, Html.FROM_HTML_MODE_LEGACY).toString()
+                }
+                val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, emojiStrings)
+                emojiAutoComplete.setAdapter(adapter)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Failed to load emojis: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
+        emojiAutoComplete.setOnFocusChangeListener { view, hasFocus ->
+            if (hasFocus) {
+                (view as? AutoCompleteTextView)?.showDropDown()
+                emojiAutoComplete.threshold = 0
+            }
+        }
+
 
         safeBinding.publishMemoryFab.setOnClickListener {
             val title = safeBinding.memoryTitleInput.text?.toString()?.trim() ?: ""
@@ -124,10 +154,23 @@ class CreateMemoryFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            // Get selected emoji from AutoCompleteTextView
+            val selectedEmoji = emojiAutoComplete.text.toString().trim()
+
             CloudinaryHelper(requireContext()).uploadImage(
                 capturedImageUri!!,
                 onSuccess = { imageUrl ->
-                    uploadTimeCapsuleToFirestore(imageUrl, title, caption, openDate, user.email ?: "", user.uid)
+                    val capsule = TimeCapsule(
+                        id = "",
+                        title = title,
+                        content = caption,
+                        openDate = openDate,
+                        imageUrl = imageUrl,
+                        creatorName = user.email ?: "",
+                        creatorId = user.uid,
+                        moodEmoji = selectedEmoji
+                    )
+                    uploadTimeCapsuleToFirestore(capsule)
                 },
                 onFailure = { error ->
                     Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
@@ -154,23 +197,7 @@ class CreateMemoryFragment : Fragment() {
         datePickerDialog.show()
     }
 
-    private fun uploadTimeCapsuleToFirestore(
-        imageUrl: String,
-        title: String,
-        content: String,
-        openDate: Long,
-        userEmail: String,
-        userId: String
-    ) {
-        val capsule = TimeCapsule(
-            id = "",
-            title = title,
-            content = content,
-            openDate = openDate,
-            imageUrl = imageUrl,
-            creatorName = userEmail,
-            creatorId = userId
-        )
+    private fun uploadTimeCapsuleToFirestore(capsule: TimeCapsule) {
         val db = FirebaseFirestore.getInstance()
         val docRef = db.collection("time_capsules").document()
         capsule.id = docRef.id
@@ -188,7 +215,8 @@ class CreateMemoryFragment : Fragment() {
                             openDate = capsule.openDate,
                             imageUrl = capsule.imageUrl,
                             creatorName = capsule.creatorName,
-                            creatorId = capsule.creatorId
+                            creatorId = capsule.creatorId,
+                            moodEmoji = capsule.moodEmoji
                         )
                     )
                 }

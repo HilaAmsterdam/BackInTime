@@ -13,5 +13,7 @@ data class TimeCapsuleEntity(
     val imageUrl: String = "",
     val creatorName: String = "",
     val creatorId: String = "",
-    val notified: Boolean = false
+    val notified: Boolean = false,
+    var moodEmoji: String = ""
+
 )

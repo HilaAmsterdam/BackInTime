@@ -29,7 +29,7 @@
         android:layout_height="50dp"
         android:layout_marginTop="32dp"
         android:backgroundTint="@color/background_color"
-        android:text="Select from Gallery"
+        android:text="Edit Memory Image"
         android:textColor="#000000"
         android:textSize="18sp"
         app:cornerRadius="50dp"
@@ -39,23 +39,47 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editMemoryTitleLabel" />
 
-    <ImageView
-        android:id="@+id/editMemoryImage"
-        android:layout_width="300dp"
+<!--    <ImageView-->
+<!--        android:id="@+id/editMemoryImage"-->
+<!--        android:layout_width="300dp"-->
+<!--        android:layout_height="200dp"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:scaleType="centerCrop"-->
+<!--        android:background="@android:color/darker_gray"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/addFromGalleryButton"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent" />-->
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/imageCard"
+        android:layout_width="320dp"
         android:layout_height="200dp"
-        android:layout_marginTop="16dp"
-        android:scaleType="centerCrop"
-        android:background="@android:color/darker_gray"
-        app:layout_constraintTop_toBottomOf="@id/addFromGalleryButton"
+        android:layout_marginTop="24dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="2dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/addFromGalleryButton">
+
+
+            <ImageView
+                android:id="@+id/editMemoryImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="@android:color/darker_gray"
+                android:contentDescription="Memory Image" />
+
+    </com.google.android.material.card.MaterialCardView>
+
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/editMemoryTitleLayout"
         android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:hint="Memory Title"
-        app:layout_constraintTop_toBottomOf="@id/editMemoryImage"
+        app:layout_constraintTop_toBottomOf="@id/imageCard"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp">
@@ -128,6 +152,27 @@
             android:focusable="false"
             android:textSize="14sp" />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:id="@+id/emojiInputLayout"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Choose EMOJI based on your mood"
+        app:endIconMode="dropdown_menu"
+        app:layout_constraintTop_toBottomOf="@+id/dateInputLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <AutoCompleteTextView
+            android:id="@+id/emojiAutoCompleteTextView"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="14sp"
+            android:gravity="center_vertical"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -66,6 +66,7 @@ class FirebaseModel {
                         imageUrl = doc.getString("imageUrl") ?: "",
                         creatorName = doc.getString("creatorName") ?: "",
                         creatorId = doc.getString("creatorId") ?: "",
+                        moodEmoji = doc.getString("moodEmoji") ?: ""
                         notified = doc.getBoolean("notified") ?: false
                     )
                 }
@@ -92,6 +93,7 @@ class FirebaseModel {
                         imageUrl = doc.getString("imageUrl") ?: "",
                         creatorName = doc.getString("creatorName") ?: "",
                         creatorId = doc.getString("creatorId") ?: "",
+                        moodEmoji = doc.getString("moodEmoji") ?: ""
                         notified = doc.getBoolean("notified") ?: false
                     )
                 } ?: emptyList()

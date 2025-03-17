@@ -68,8 +68,8 @@ dependencies {
     implementation(libs.android.job)
     implementation(libs.picasso)
     implementation(libs.androidx.work.runtime.ktx)
-
-
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
 }
 
 configurations.all {

@@ -8,7 +8,7 @@ import com.example.backintime.Model.Dao.TimeCapsuleDao
 import com.example.backintime.Model.Dao.UserDao
 import com.example.backintime.Model.Dao.TimeCapsuleEntity
 
-@Database(entities = [TimeCapsuleEntity::class, com.example.backintime.Model.User::class], version = 1, exportSchema = false)
+@Database(entities = [TimeCapsuleEntity::class, com.example.backintime.Model.User::class], version = 2, exportSchema = false)
 abstract class AppLocalDb : RoomDatabase() {
 
     abstract fun timeCapsuleDao(): TimeCapsuleDao

@@ -12,5 +12,6 @@ data class TimeCapsule(
     var openDate: Long = 0,
     var imageUrl: String = "",
     var creatorName: String = "",
-    var creatorId: String = ""
+    var creatorId: String = "",
+    var moodEmoji: String = ""
 ): Parcelable

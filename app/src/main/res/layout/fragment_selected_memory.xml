@@ -109,6 +109,16 @@
                 android:layout_marginTop="12dp"
                 android:text="Memory description"
                 android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/moodTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:text="Mood"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="8dp"/>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -141,6 +151,7 @@
         app:layout_constraintEnd_toStartOf="@+id/goToEditMemoryFab"
         app:srcCompat="@android:drawable/ic_menu_delete"
         app:tint="#000000" />
+
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/navigation"
