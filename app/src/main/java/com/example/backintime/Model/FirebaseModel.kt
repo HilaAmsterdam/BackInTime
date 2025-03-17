@@ -53,7 +53,6 @@ class FirebaseModel {
         auth.signOut()
     }
 
-    // Existing one-time fetch method (if needed)
     fun fetchTimeCapsulesFromFirebase(onComplete: (List<TimeCapsuleEntity>) -> Unit) {
         db.collection("time_capsules")
             .get()
@@ -66,7 +65,8 @@ class FirebaseModel {
                         openDate = doc.getLong("openDate") ?: 0,
                         imageUrl = doc.getString("imageUrl") ?: "",
                         creatorName = doc.getString("creatorName") ?: "",
-                        creatorId = doc.getString("creatorId") ?: ""
+                        creatorId = doc.getString("creatorId") ?: "",
+                        notified = doc.getBoolean("notified") ?: false
                     )
                 }
                 onComplete(capsules)
@@ -76,7 +76,6 @@ class FirebaseModel {
             }
     }
 
-    // New method: use a snapshot listener for real-time updates
     fun listenTimeCapsulesFromFirebase(onUpdate: (List<TimeCapsuleEntity>) -> Unit) {
         db.collection("time_capsules")
             .addSnapshotListener { snapshot, error ->
@@ -92,7 +91,8 @@ class FirebaseModel {
                         openDate = doc.getLong("openDate") ?: 0,
                         imageUrl = doc.getString("imageUrl") ?: "",
                         creatorName = doc.getString("creatorName") ?: "",
-                        creatorId = doc.getString("creatorId") ?: ""
+                        creatorId = doc.getString("creatorId") ?: "",
+                        notified = doc.getBoolean("notified") ?: false
                     )
                 } ?: emptyList()
                 onUpdate(capsules)
