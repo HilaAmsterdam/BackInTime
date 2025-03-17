@@ -5,9 +5,11 @@ import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
@@ -19,6 +21,7 @@ import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.Model.Dao.TimeCapsuleEntity
 import com.example.backintime.R
+import com.example.backintime.api.RetrofitInstance
 import com.example.backintime.databinding.FragmentEditMemoryBinding
 import com.example.backintime.utils.CloudinaryHelper
 import com.google.firebase.firestore.FirebaseFirestore
@@ -39,7 +42,7 @@ class EditMemoryFragment : Fragment() {
     private val args: EditMemoryFragmentArgs by navArgs()
     private var capturedImageUri: Uri? = null
 
-    // Launcher לצילום תמונה מהמצלמה
+    // Launcher for taking a picture with the camera
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         binding?.let { safeBinding ->
             if (success) {
@@ -52,6 +55,7 @@ class EditMemoryFragment : Fragment() {
         }
     }
 
+    // Launcher for picking an image from the gallery
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         binding?.let { safeBinding ->
             if (uri != null) {
@@ -85,6 +89,23 @@ class EditMemoryFragment : Fragment() {
                 .placeholder(R.drawable.ic_profile_placeholder)
                 .error(R.drawable.ic_profile_placeholder)
                 .into(safeBinding.editMemoryImage)
+        }
+
+        // Set up AutoCompleteTextView for emoji selection
+        val emojiAutoComplete = safeBinding.emojiAutoCompleteTextView
+        // Initialize with current moodEmoji value if exists
+        emojiAutoComplete.setText(memory.moodEmoji, false)
+        lifecycleScope.launch {
+            try {
+                val emojiList = RetrofitInstance.api.getAllEmojis()
+                val emojiStrings = emojiList.map { emoji ->
+                    Html.fromHtml(emoji.htmlCode.firstOrNull() ?: "&#128528;", Html.FROM_HTML_MODE_LEGACY).toString()
+                }
+                val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, emojiStrings)
+                emojiAutoComplete.setAdapter(adapter)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Failed to load emojis", Toast.LENGTH_SHORT).show()
+            }
         }
 
         safeBinding.addFromGalleryButton.setOnClickListener {
@@ -130,6 +151,9 @@ class EditMemoryFragment : Fragment() {
                 System.currentTimeMillis()
             }
 
+            // Get selected emoji
+            val selectedEmoji = emojiAutoComplete.text.toString().trim()
+
             if (capturedImageUri != null) {
                 CloudinaryHelper(requireContext()).uploadImage(
                     capturedImageUri!!,
@@ -138,7 +162,8 @@ class EditMemoryFragment : Fragment() {
                             title = newTitle,
                             content = newContent,
                             openDate = openDate,
-                            imageUrl = imageUrl
+                            imageUrl = imageUrl,
+                            moodEmoji = selectedEmoji
                         )
                         updateMemory(updatedMemory)
                     },
@@ -150,7 +175,8 @@ class EditMemoryFragment : Fragment() {
                 val updatedMemory = memory.copy(
                     title = newTitle,
                     content = newContent,
-                    openDate = openDate
+                    openDate = openDate,
+                    moodEmoji = selectedEmoji
                 )
                 updateMemory(updatedMemory)
             }
@@ -166,7 +192,8 @@ class EditMemoryFragment : Fragment() {
                     "title" to updatedMemory.title,
                     "content" to updatedMemory.content,
                     "openDate" to updatedMemory.openDate,
-                    "imageUrl" to updatedMemory.imageUrl
+                    "imageUrl" to updatedMemory.imageUrl,
+                    "moodEmoji" to updatedMemory.moodEmoji
                 )
             )
             .addOnSuccessListener {
@@ -181,7 +208,8 @@ class EditMemoryFragment : Fragment() {
                             openDate = updatedMemory.openDate,
                             imageUrl = updatedMemory.imageUrl,
                             creatorName = updatedMemory.creatorName,
-                            creatorId = updatedMemory.creatorId
+                            creatorId = updatedMemory.creatorId,
+                            moodEmoji = updatedMemory.moodEmoji
                         )
                     )
                     withContext(Dispatchers.Main) {

@@ -66,7 +66,8 @@ class FirebaseModel {
                         openDate = doc.getLong("openDate") ?: 0,
                         imageUrl = doc.getString("imageUrl") ?: "",
                         creatorName = doc.getString("creatorName") ?: "",
-                        creatorId = doc.getString("creatorId") ?: ""
+                        creatorId = doc.getString("creatorId") ?: "",
+                        moodEmoji = doc.getString("moodEmoji") ?: ""
                     )
                 }
                 onComplete(capsules)
@@ -92,7 +93,8 @@ class FirebaseModel {
                         openDate = doc.getLong("openDate") ?: 0,
                         imageUrl = doc.getString("imageUrl") ?: "",
                         creatorName = doc.getString("creatorName") ?: "",
-                        creatorId = doc.getString("creatorId") ?: ""
+                        creatorId = doc.getString("creatorId") ?: "",
+                        moodEmoji = doc.getString("moodEmoji") ?: ""
                     )
                 } ?: emptyList()
                 onUpdate(capsules)

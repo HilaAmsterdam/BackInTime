@@ -71,7 +71,8 @@ class SelectedMemoryFragment : Fragment() {
                     openDate = entity.openDate,
                     imageUrl = entity.imageUrl,
                     creatorName = entity.creatorName,
-                    creatorId = entity.creatorId
+                    creatorId = entity.creatorId,
+                    moodEmoji = entity.moodEmoji
                 )
                 withContext(Dispatchers.Main) {
                     displayMemory(updatedMemory)
@@ -89,7 +90,6 @@ class SelectedMemoryFragment : Fragment() {
             safeBinding.memoryDate.text = dateFormat.format(memory.openDate)
 
             if (memory.imageUrl.isNotEmpty()) {
-                // Show the progress bar before loading the image
                 safeBinding.memoryProgressBar.visibility = View.VISIBLE
                 Picasso.get()
                     .load(memory.imageUrl)
@@ -107,12 +107,13 @@ class SelectedMemoryFragment : Fragment() {
                 safeBinding.memoryImage.setImageResource(R.drawable.ic_profile_placeholder)
                 safeBinding.memoryProgressBar.visibility = View.GONE
             }
+            // Display mood emoji as saved in the capsule
+            safeBinding.moodTextView.text = memory.moodEmoji
         }
     }
 
     private fun setupButtons(capsule: TimeCapsule) {
         binding?.let { safeBinding ->
-            // Ensure only the post owner sees the edit and delete buttons.
             val currentUser = FirebaseAuth.getInstance().currentUser
             if (currentUser == null || currentUser.uid != capsule.creatorId) {
                 safeBinding.goToEditMemoryFab.visibility = View.GONE
@@ -159,7 +160,6 @@ class SelectedMemoryFragment : Fragment() {
     }
 
     private fun loadUserProfileImage(creatorId: String) {
-        // First try to load the user data from Room
         lifecycleScope.launch(Dispatchers.IO) {
             val db = AppLocalDb.getDatabase(requireContext())
             val cachedUser = db.userDao().getUserById(creatorId)
@@ -180,7 +180,6 @@ class SelectedMemoryFragment : Fragment() {
                     }
                 }
             } else {
-                // If not found locally, fetch from Firestore
                 FirebaseFirestore.getInstance()
                     .collection("users")
                     .document(creatorId)
@@ -189,9 +188,7 @@ class SelectedMemoryFragment : Fragment() {
                         val profileImageUrl = document.getString("profileImageUrl") ?: ""
                         val email = document.getString("email") ?: ""
                         val user = User(uid = creatorId, email = email, profileImageUrl = profileImageUrl)
-                        // Save the fetched user info to Room for caching
-                        lifecycleScope.launch(Dispatchers.IO) {
-                            val db = AppLocalDb.getDatabase(requireContext())
+                        lifecycleScope.launch(Dispatchers.IO) {                            val db = AppLocalDb.getDatabase(requireContext())
                             db.userDao().insertUser(user)
                         }
                         binding?.let { safeBinding ->
