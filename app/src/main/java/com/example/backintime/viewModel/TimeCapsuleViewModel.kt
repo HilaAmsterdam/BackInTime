@@ -19,7 +19,6 @@ class TimeCapsuleViewModel(private val repository: TimeCapsuleRepository) : View
     fun insertCapsule(capsule: TimeCapsuleEntity) {
         viewModelScope.launch {
             repository.insertTimeCapsule(capsule)
-            // לאחר השמירה, טען מחדש כדי לעדכן את רשימת הקפסולות
             loadCapsules()
         }
     }

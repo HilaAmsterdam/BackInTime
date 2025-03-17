@@ -9,6 +9,10 @@ class TimeCapsuleRepository(private val dao: TimeCapsuleDao) {
         dao.insertTimeCapsule(timeCapsule)
     }
 
+    suspend fun updateTimeCapsule(timeCapsule: TimeCapsuleEntity) {
+        dao.insertTimeCapsule(timeCapsule)
+    }
+
     suspend fun getAllTimeCapsules(): List<TimeCapsuleEntity> {
         return dao.getAllTimeCapsules()
     }
@@ -17,4 +21,11 @@ class TimeCapsuleRepository(private val dao: TimeCapsuleDao) {
         dao.deleteTimeCapsule(timeCapsule.firebaseId)
     }
 
+    suspend fun getTimeCapsuleById(firebaseId: String): TimeCapsuleEntity? {
+        return dao.getMemoryByFirebaseId(firebaseId)
+    }
+
+    suspend fun getTimeCapsulesByCreator(creatorId: String): List<TimeCapsuleEntity> {
+        return dao.getTimeCapsulesByCreator(creatorId)
+    }
 }

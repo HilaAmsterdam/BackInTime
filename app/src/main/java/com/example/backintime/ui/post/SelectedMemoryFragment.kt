@@ -205,7 +205,7 @@ class SelectedMemoryFragment : Fragment() {
                                         }
                                     })
                             } else {
-                                safeBinding.userProfileImage.setImageResource(R.drawable.ic_profile_placeholder)
+                                safeBinding.userProfileImage.setImageResource(R.drawable.baseline_account_circle_24)
                                 safeBinding.profileProgressBar.visibility = View.GONE
                             }
                         }
