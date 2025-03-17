@@ -32,10 +32,8 @@ class EditProfileFragment : Fragment() {
     private var _binding: FragmentEditProfileBinding? = null
     private val binding get() = _binding
 
-    // URI של התמונה שנבחרה או צולמה
     private var capturedImageUri: Uri? = null
 
-    // Launcher לפתיחת מצלמה
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         val safeBinding = binding ?: return@registerForActivityResult
         if (success) {
@@ -49,7 +47,6 @@ class EditProfileFragment : Fragment() {
         }
     }
 
-    // Launcher לבחירת תמונה מהגלריה
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         val safeBinding = binding ?: return@registerForActivityResult
         if (uri != null) {
@@ -74,10 +71,8 @@ class EditProfileFragment : Fragment() {
 
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
-            // מציגים את האימייל הקיים
             safeBinding.editProfileEmail.setText(currentUser.email)
             Log.d("EditProfile", "Current email: ${currentUser.email}")
-            // טוענים את התמונה הנוכחית מ-Firestore
             FirebaseFirestore.getInstance()
                 .collection("users")
                 .document(currentUser.uid)
@@ -108,7 +103,7 @@ class EditProfileFragment : Fragment() {
                 .setTitle("Choose Image Source")
                 .setItems(options) { _, which ->
                     when (which) {
-                        0 -> { // מצלמה
+                        0 -> {
                             val imageFile = createImageFile()
                             capturedImageUri = FileProvider.getUriForFile(
                                 requireContext(),
@@ -118,7 +113,7 @@ class EditProfileFragment : Fragment() {
                             Log.d("EditProfile", "Launching camera with URI: $capturedImageUri")
                             takePictureLauncher.launch(capturedImageUri)
                         }
-                        1 -> { // גלריה
+                        1 -> {
                             Log.d("EditProfile", "Launching gallery picker")
                             pickImageLauncher.launch("image/*")
                         }
@@ -132,7 +127,6 @@ class EditProfileFragment : Fragment() {
             val newPassword = safeBinding.editProfilePassword.text.toString().trim()
             val confirmPassword = safeBinding.confirmProfilePassword.text.toString().trim()
 
-            // בדיקת סיסמאות
             if (newPassword.isNotEmpty() && newPassword != confirmPassword) {
                 Log.d("EditProfile", "Passwords do not match.")
                 Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
@@ -141,16 +135,20 @@ class EditProfileFragment : Fragment() {
 
             val user = FirebaseAuth.getInstance().currentUser
             if (user != null) {
+                val isEmailProvider = user.providerData.any { it.providerId == "password" }
+                if (!isEmailProvider) {
+                    Toast.makeText(context, "Email update not supported for this sign-in provider", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
                 val pendingUpdates = AtomicInteger(0)
 
-                // עדכון אימייל – אם שונה מהאימייל הנוכחי
                 if (newEmail != user.email) {
                     Log.d("EditProfile", "Attempting to update email from ${user.email} to $newEmail")
                     pendingUpdates.incrementAndGet()
                     user.updateEmail(newEmail).addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Log.d("EditProfile", "Email update successful.")
-                            // עדכון המסמך ב-Firestore
                             FirebaseFirestore.getInstance()
                                 .collection("users")
                                 .document(user.uid)
@@ -171,7 +169,6 @@ class EditProfileFragment : Fragment() {
                                 }
                         } else {
                             Log.e("EditProfile", "Email update failed: ${task.exception}")
-                            // אם נדרש re-authentication
                             if (task.exception is FirebaseAuthRecentLoginRequiredException) {
                                 Log.d("EditProfile", "Re-authentication required for email update.")
                                 showReauthenticationDialog(user, newEmail) { success ->
@@ -196,7 +193,6 @@ class EditProfileFragment : Fragment() {
                     }
                 }
 
-                // עדכון סיסמה אם נדרש
                 if (newPassword.isNotEmpty()) {
                     Log.d("EditProfile", "Attempting to update password.")
                     pendingUpdates.incrementAndGet()
@@ -214,7 +210,6 @@ class EditProfileFragment : Fragment() {
                     }
                 }
 
-                // העלאת תמונה ל-Cloudinary אם נבחרה תמונה חדשה
                 val localUri = capturedImageUri
                 if (localUri != null) {
                     Log.d("EditProfile", "Attempting to upload new profile image: $localUri")
