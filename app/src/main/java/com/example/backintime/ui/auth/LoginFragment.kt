@@ -39,25 +39,23 @@ class LoginFragment : Fragment() {
 
             if (email.isNotBlank() && password.isNotBlank()) {
                 firebaseModel.loginUser(email, password) { success, errorMessage ->
-                    // בדיקה שהפרגמנט עדיין מצורף
                     if (!isAdded) return@loginUser
                     val safeContext = context ?: return@loginUser
 
                     if (success) {
-                        Toast.makeText(safeContext, "התחברת בהצלחה!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(safeContext, "You have successfully connected!", Toast.LENGTH_SHORT).show()
 
-                        // קריאה לסנכרון הנתונים מ-Firebase ל-Room
                         SyncManager.listenFirebaseDataToRoom(safeContext)
 
                         val intent = Intent(safeContext, SecondActivity::class.java)
                         startActivity(intent)
                         activity?.finish()
                     } else {
-                        Toast.makeText(safeContext, "שגיאה: $errorMessage", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(safeContext, "error: $errorMessage", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
-                Toast.makeText(requireContext(), "אנא מלא את כל השדות", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), " Please fill in all fields.", Toast.LENGTH_SHORT).show()
             }
         }
 
