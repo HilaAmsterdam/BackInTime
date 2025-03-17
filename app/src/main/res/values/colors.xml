@@ -1,8 +1,8 @@
 <resources>
     <color name="background_color">#FAF9F6</color>
-
     <color name="button_background">#FAF9F6</color>
-    <color name="my_light_primary">#5FB3F9</color>
+    <color name="header_tex">#5FB3F9</color>
+    <color name="my_light_primary">#3F3D3D</color>
     <color name="my_light_on_primary">#8A8988</color>
     <color name="button_text">#000000</color>
 </resources>

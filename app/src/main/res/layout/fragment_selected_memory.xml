@@ -13,11 +13,11 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="16dp"
-        android:backgroundTint="#FAF9F6"
+        android:backgroundTint="@color/background_color"
         app:cardCornerRadius="12dp"
         app:cardElevation="8dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/navigation"
+        app:layout_constraintBottom_toTopOf="@id/navigation"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_default="wrap">
@@ -43,7 +43,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
-                        android:background="#5B5B5B" />
+                        android:background="@color/cardview_dark_background" />
 
                     <ProgressBar
                         android:id="@+id/profileProgressBar"
@@ -73,7 +73,7 @@
                     android:id="@+id/memoryImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="#5B5B5B"
+                    android:background="@color/cardview_dark_background"
                     android:scaleType="centerCrop" />
 
                 <ProgressBar
@@ -116,8 +116,6 @@
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
                 android:text="Mood"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="8dp"/>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -127,12 +125,11 @@
         style="?attr/floatingActionButtonSmallStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
         android:contentDescription="Edit Memory"
         app:backgroundTint="#FAF9F6"
         app:fabSize="normal"
-        app:layout_constraintBottom_toTopOf="@+id/navigation"
+        app:layout_constraintBottom_toTopOf="@id/navigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_menu_edit"
         app:tint="#000000" />
@@ -142,16 +139,14 @@
         style="?attr/floatingActionButtonSmallStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
         android:contentDescription="Delete Memory"
         app:backgroundTint="#FAF9F6"
         app:fabSize="normal"
-        app:layout_constraintBottom_toTopOf="@+id/navigation"
-        app:layout_constraintEnd_toStartOf="@+id/goToEditMemoryFab"
+        app:layout_constraintBottom_toTopOf="@id/navigation"
+        app:layout_constraintEnd_toStartOf="@id/goToEditMemoryFab"
         app:srcCompat="@android:drawable/ic_menu_delete"
         app:tint="#000000" />
-
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/navigation"
@@ -161,7 +156,7 @@
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:labelVisibilityMode="labeled"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

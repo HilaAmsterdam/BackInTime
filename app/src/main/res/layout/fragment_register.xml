@@ -20,8 +20,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/profileImage"
@@ -32,9 +31,7 @@
         android:src="@drawable/baseline_account_circle_24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/createMemoryTitle"
-        tools:ignore="ContentDescription" />
-
+        app:layout_constraintTop_toBottomOf="@id/createMemoryTitle" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/uploadImageButton"
@@ -54,8 +51,10 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/registerButton"
         style="@style/Widget.Material3.Button.ElevatedButton"
-        android:layout_width="320dp"
-        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
         android:layout_marginTop="64dp"
         android:backgroundTint="@color/button_background"
         android:text="register"
@@ -64,9 +63,7 @@
         app:cornerRadius="50dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/confirmPasswordLayout"
-        tools:ignore="HardcodedText" />
-
+        app:layout_constraintTop_toBottomOf="@+id/confirmPasswordLayout" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -98,11 +95,12 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/usernameLayout"
-        android:layout_width="320dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
         android:layout_marginTop="20dp"
         app:boxBackgroundMode="outline"
         app:boxStrokeColor="#6495ED"
@@ -121,8 +119,10 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/passwordLayout"
-        android:layout_width="320dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
         android:layout_marginTop="8dp"
         app:boxBackgroundMode="outline"
         app:boxStrokeColor="#6495ED"
@@ -142,8 +142,10 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/confirmPasswordLayout"
-        android:layout_width="320dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
         android:layout_marginTop="8dp"
         app:boxBackgroundMode="outline"
         app:boxStrokeWidth="2dp"
@@ -160,7 +162,5 @@
             android:inputType="textPassword"
             android:textSize="18sp" />
     </com.google.android.material.textfield.TextInputLayout>
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
