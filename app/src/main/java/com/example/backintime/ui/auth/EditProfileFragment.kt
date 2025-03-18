@@ -1,6 +1,7 @@
 package com.example.backintime.ui.auth
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -33,6 +34,7 @@ class EditProfileFragment : Fragment() {
     private val binding get() = _binding
 
     private var capturedImageUri: Uri? = null
+    private var navigationDone = false
 
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         val safeBinding = binding ?: return@registerForActivityResult
@@ -143,6 +145,13 @@ class EditProfileFragment : Fragment() {
 
                 val pendingUpdates = AtomicInteger(0)
 
+                fun tryNavigate() {
+                    if (pendingUpdates.get() == 0 && isAdded && !navigationDone) {
+                        navigationDone = true
+                        findNavController().popBackStack()
+                    }
+                }
+
                 if (newEmail != user.email) {
                     Log.d("EditProfile", "Attempting to update email from ${user.email} to $newEmail")
                     pendingUpdates.incrementAndGet()
@@ -156,16 +165,14 @@ class EditProfileFragment : Fragment() {
                                 .addOnSuccessListener {
                                     Log.d("EditProfile", "Firestore email update successful.")
                                     Toast.makeText(context, "Email updated", Toast.LENGTH_SHORT).show()
-                                    if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
-                                        findNavController().popBackStack()
-                                    }
+                                    pendingUpdates.decrementAndGet()
+                                    tryNavigate()
                                 }
                                 .addOnFailureListener { e ->
                                     Log.e("EditProfile", "Firestore email update failed: ${e.message}")
                                     Toast.makeText(context, "Failed to update email in Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
-                                    if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
-                                        findNavController().popBackStack()
-                                    }
+                                    pendingUpdates.decrementAndGet()
+                                    tryNavigate()
                                 }
                         } else {
                             Log.e("EditProfile", "Email update failed: ${task.exception}")
@@ -179,15 +186,13 @@ class EditProfileFragment : Fragment() {
                                         Log.e("EditProfile", "Failed to update email after re-authentication.")
                                         Toast.makeText(context, "Failed to update email after re-authentication", Toast.LENGTH_SHORT).show()
                                     }
-                                    if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
-                                        findNavController().popBackStack()
-                                    }
+                                    pendingUpdates.decrementAndGet()
+                                    tryNavigate()
                                 }
                             } else {
                                 Toast.makeText(context, "Failed to update email: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
-                                if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
-                                    findNavController().popBackStack()
-                                }
+                                pendingUpdates.decrementAndGet()
+                                tryNavigate()
                             }
                         }
                     }
@@ -204,9 +209,8 @@ class EditProfileFragment : Fragment() {
                             Log.e("EditProfile", "Password update failed: ${task.exception}")
                             Toast.makeText(context, "Failed to update password: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                         }
-                        if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
-                            findNavController().popBackStack()
-                        }
+                        pendingUpdates.decrementAndGet()
+                        tryNavigate()
                     }
                 }
 
@@ -236,24 +240,20 @@ class EditProfileFragment : Fragment() {
                                     Toast.makeText(context, "Failed to update profile image: ${e.message}", Toast.LENGTH_SHORT).show()
                                 }
                                 .addOnCompleteListener {
-                                    if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
-                                        findNavController().popBackStack()
-                                    }
+                                    pendingUpdates.decrementAndGet()
+                                    tryNavigate()
                                 }
                         },
                         onFailure = { error ->
                             Log.e("EditProfile", "Image upload error: $error")
                             Toast.makeText(context, "Image upload error: $error", Toast.LENGTH_SHORT).show()
-                            if (pendingUpdates.decrementAndGet() == 0 && isAdded) {
-                                findNavController().popBackStack()
-                            }
+                            pendingUpdates.decrementAndGet()
+                            tryNavigate()
                         }
                     )
                 }
 
-                if (pendingUpdates.get() == 0 && isAdded) {
-                    findNavController().popBackStack()
-                }
+                tryNavigate()
             }
         }
     }
@@ -269,18 +269,24 @@ class EditProfileFragment : Fragment() {
             val currentPassword = input.text.toString()
             Log.d("EditProfile", "Reauthentication: user entered password.")
             if (currentPassword.isNotEmpty()) {
-                val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
-                user.reauthenticate(credential).addOnCompleteListener { reauthTask ->
-                    if (reauthTask.isSuccessful) {
-                        Log.d("EditProfile", "Reauthentication successful.")
-                        user.updateEmail(newEmail).addOnCompleteListener { updateTask ->
-                            Log.d("EditProfile", "Email update after reauthentication: success=${updateTask.isSuccessful}")
-                            callback(updateTask.isSuccessful)
+                val email = user.email
+                if (email != null) {
+                    val credential = EmailAuthProvider.getCredential(email, currentPassword)
+                    user.reauthenticate(credential).addOnCompleteListener { reauthTask ->
+                        if (reauthTask.isSuccessful) {
+                            Log.d("EditProfile", "Reauthentication successful.")
+                            user.updateEmail(newEmail).addOnCompleteListener { updateTask ->
+                                Log.d("EditProfile", "Email update after reauthentication: success=${updateTask.isSuccessful}")
+                                callback(updateTask.isSuccessful)
+                            }
+                        } else {
+                            Log.e("EditProfile", "Reauthentication failed: ${reauthTask.exception}")
+                            callback(false)
                         }
-                    } else {
-                        Log.e("EditProfile", "Reauthentication failed: ${reauthTask.exception}")
-                        callback(false)
                     }
+                } else {
+                    Log.e("EditProfile", "User email is null; cannot reauthenticate.")
+                    callback(false)
                 }
             } else {
                 Log.e("EditProfile", "Reauthentication failed: no password provided.")

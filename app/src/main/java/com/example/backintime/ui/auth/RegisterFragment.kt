@@ -24,8 +24,7 @@ import java.io.File
 class RegisterFragment : Fragment() {
 
     private var _binding: FragmentRegisterBinding? = null
-    private val binding: FragmentRegisterBinding?
-        get() = _binding
+    private val binding get() = _binding
 
     private val firebaseModel = FirebaseModel()
     private var capturedImageUri: Uri? = null
@@ -98,21 +97,23 @@ class RegisterFragment : Fragment() {
 
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 if (capturedImageUri != null) {
-                    CloudinaryHelper(requireContext()).uploadImage(capturedImageUri!!, onSuccess = { imageUrl ->
-                        firebaseModel.registerUser(email, password, imageUrl) { success, errorMessage ->
-                            if (success) {
-                                Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show()
-                                SyncManager.listenFirebaseDataToRoom(requireContext())
-                                val intent = Intent(requireContext(), SecondActivity::class.java)
-                                startActivity(intent)
-                                activity?.finish()
-                            } else {
-                                Toast.makeText(requireContext(), "Error: $errorMessage", Toast.LENGTH_SHORT).show()
+                    capturedImageUri?.let { uri ->
+                        CloudinaryHelper(requireContext()).uploadImage(uri, onSuccess = { imageUrl ->
+                            firebaseModel.registerUser(email, password, imageUrl) { success, errorMessage ->
+                                if (success) {
+                                    Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show()
+                                    SyncManager.listenFirebaseDataToRoom(requireContext())
+                                    val intent = Intent(requireContext(), SecondActivity::class.java)
+                                    startActivity(intent)
+                                    activity?.finish()
+                                } else {
+                                    Toast.makeText(requireContext(), "Error: $errorMessage", Toast.LENGTH_SHORT).show()
+                                }
                             }
-                        }
-                    }, onFailure = { error ->
-                        Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
-                    })
+                        }, onFailure = { error ->
+                            Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
+                        })
+                    }
                 } else {
                     firebaseModel.registerUser(email, password, null) { success, errorMessage ->
                         if (success) {
