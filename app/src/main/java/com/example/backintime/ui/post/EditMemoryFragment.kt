@@ -152,6 +152,10 @@ class EditMemoryFragment : Fragment() {
             }
 
             val selectedEmoji = emojiAutoComplete.text.toString().trim()
+            if (selectedEmoji.isEmpty()) {
+                Toast.makeText(requireContext(), "Please select an emoji", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             progressViewModel.setLoading(true)
             capturedImageUri?.let { uri ->

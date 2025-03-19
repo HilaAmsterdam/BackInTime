@@ -128,11 +128,18 @@ class CreateMemoryFragment : Fragment() {
             val title = safeBinding.memoryTitleInput.text?.toString()?.trim() ?: ""
             val caption = safeBinding.memoryCaptionInput.text?.toString()?.trim() ?: ""
             val dateText = safeBinding.memoryDateInput.text?.toString()?.trim() ?: ""
+            val selectedEmoji = emojiAutoComplete.text.toString().trim()
 
             if (title.isEmpty() || caption.isEmpty() || dateText.isEmpty()) {
                 Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            if (selectedEmoji.isEmpty()) {
+                Toast.makeText(requireContext(), "Please select an emoji", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            Log.d("CreateMemoryFragment", "Selected emoji: [$selectedEmoji]")
+
 
             val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             val openDate = try {
