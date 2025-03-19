@@ -22,6 +22,8 @@ import com.example.backintime.api.RetrofitInstance
 import com.example.backintime.databinding.FragmentCreateMemoryBinding
 import com.example.backintime.utils.CloudinaryHelper
 import com.example.backintime.viewModel.ProgressViewModel
+import com.example.backintime.viewModel.TimeCapsuleViewModel
+import com.example.backintime.viewModel.TimeCapsuleViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
@@ -39,6 +41,7 @@ class CreateMemoryFragment : Fragment() {
     private val binding get() = _binding
     private var capturedImageUri: Uri? = null
     private val progressViewModel: ProgressViewModel by activityViewModels()
+    private lateinit var viewModel: TimeCapsuleViewModel
 
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         binding?.let { safeBinding ->
@@ -71,6 +74,9 @@ class CreateMemoryFragment : Fragment() {
 
     override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup?, savedInstanceState: Bundle?): android.view.View? {
         _binding = FragmentCreateMemoryBinding.inflate(inflater, container, false)
+        val db = AppLocalDb.getDatabase(requireContext())
+        val repository = com.example.backintime.Repository.TimeCapsuleRepository(db.timeCapsuleDao(), db.userDao())
+        viewModel = androidx.lifecycle.ViewModelProvider(requireActivity(), TimeCapsuleViewModelFactory(repository)).get(TimeCapsuleViewModel::class.java)
         return binding?.root
     }
 
@@ -114,7 +120,6 @@ class CreateMemoryFragment : Fragment() {
         }
 
         safeBinding.publishMemoryFab.setOnClickListener {
-            // מניעת לחיצה חוזרת על הכפתור
             safeBinding.publishMemoryFab.isEnabled = false
 
             val title = safeBinding.memoryTitleInput.text?.toString()?.trim() ?: ""
@@ -164,21 +169,18 @@ class CreateMemoryFragment : Fragment() {
                             docRef.set(capsule)
                                 .addOnSuccessListener {
                                     Toast.makeText(requireContext(), "Time Capsule created!", Toast.LENGTH_SHORT).show()
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        AppLocalDb.getDatabase(requireContext()).timeCapsuleDao().insertTimeCapsule(
-                                            TimeCapsuleEntity(
-                                                firebaseId = capsule.id,
-                                                title = capsule.title,
-                                                content = capsule.content,
-                                                openDate = capsule.openDate,
-                                                imageUrl = capsule.imageUrl,
-                                                creatorName = capsule.creatorName,
-                                                creatorId = capsule.creatorId,
-                                                notified = false,
-                                                moodEmoji = capsule.moodEmoji
-                                            )
-                                        )
-                                    }
+                                    val entity = TimeCapsuleEntity(
+                                        firebaseId = capsule.id,
+                                        title = capsule.title,
+                                        content = capsule.content,
+                                        openDate = capsule.openDate,
+                                        imageUrl = capsule.imageUrl,
+                                        creatorName = capsule.creatorName,
+                                        creatorId = capsule.creatorId,
+                                        notified = false,
+                                        moodEmoji = capsule.moodEmoji
+                                    )
+                                    viewModel.insertCapsule(entity)
                                     val action = CreateMemoryFragmentDirections.actionCreateMemoryFragmentToFeedFragment()
                                     findNavController().navigate(action)
                                     progressViewModel.setLoading(false)

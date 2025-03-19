@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.backintime.Model.Dao.TimeCapsuleEntity
+import com.example.backintime.Model.User
 import com.example.backintime.Repository.TimeCapsuleRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,6 +49,12 @@ class TimeCapsuleViewModel(private val repository: TimeCapsuleRepository) : View
             withContext(Dispatchers.Main) {
                 callback(capsule)
             }
+        }
+    }
+
+    fun insertUser(user: User) {
+        viewModelScope.launch {
+            repository.insertUser(user)
         }
     }
 }

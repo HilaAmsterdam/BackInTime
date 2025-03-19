@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Locale
-import com.example.backintime.Model.AppLocalDb
 
 class SelectedMemoryFragment : Fragment() {
 
@@ -120,22 +119,19 @@ class SelectedMemoryFragment : Fragment() {
                         .setTitle("Delete Memory")
                         .setMessage("Are you sure you want to delete this memory?")
                         .setPositiveButton("Yes") { _, _ ->
-                            FirebaseFirestore.getInstance()
-                                .collection("time_capsules")
-                                .document(capsule.id)
-                                .delete()
-                                .addOnSuccessListener {
-                                    Toast.makeText(requireContext(), "Memory deleted", Toast.LENGTH_SHORT).show()
-                                    lifecycleScope.launch(Dispatchers.IO) {
-                                        AppLocalDb.getDatabase(requireContext()).timeCapsuleDao().deleteTimeCapsule(capsule.id)
-                                        withContext(Dispatchers.Main) {
-                                            safeBinding.root.findNavController().popBackStack()
-                                        }
-                                    }
-                                }
-                                .addOnFailureListener { e ->
-                                    Toast.makeText(requireContext(), "Deletion failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                                }
+                            val entity = com.example.backintime.Model.Dao.TimeCapsuleEntity(
+                                firebaseId = capsule.id,
+                                title = capsule.title,
+                                content = capsule.content,
+                                openDate = capsule.openDate,
+                                imageUrl = capsule.imageUrl,
+                                creatorName = capsule.creatorName,
+                                creatorId = capsule.creatorId,
+                                notified = false,
+                                moodEmoji = capsule.moodEmoji
+                            )
+                            viewModel.deleteCapsule(entity)
+                            safeBinding.root.findNavController().popBackStack()
                         }
                         .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
                         .show()
@@ -145,14 +141,15 @@ class SelectedMemoryFragment : Fragment() {
     }
 
     private fun loadUserProfileImage(creatorId: String) {
+        // במקום גישה ישירה ל־Room, נעשה שימוש בפונקציה insertUser של ה־ViewModel
         lifecycleScope.launch(Dispatchers.IO) {
-            val db = AppLocalDb.getDatabase(requireContext())
+            val db = com.example.backintime.Model.AppLocalDb.getDatabase(requireContext())
             val cachedUser = db.userDao().getUserById(creatorId)
             if (cachedUser != null && cachedUser.profileImageUrl.isNotEmpty()) {
                 withContext(Dispatchers.Main) {
                     binding?.let { safeBinding ->
                         safeBinding.profileProgressBar.visibility = View.VISIBLE
-                        Picasso.get().load(cachedUser.profileImageUrl)
+                        com.squareup.picasso.Picasso.get().load(cachedUser.profileImageUrl)
                             .into(safeBinding.userProfileImage, object : com.squareup.picasso.Callback {
                                 override fun onSuccess() {
                                     safeBinding.profileProgressBar.visibility = View.GONE
@@ -171,18 +168,12 @@ class SelectedMemoryFragment : Fragment() {
                     .addOnSuccessListener { document ->
                         val profileImageUrl = document.getString("profileImageUrl") ?: ""
                         val email = document.getString("email") ?: ""
-                        val user = User(
-                            uid = creatorId,
-                            email = email,
-                            profileImageUrl = profileImageUrl
-                        )
-                        lifecycleScope.launch(Dispatchers.IO) {
-                            AppLocalDb.getDatabase(requireContext()).userDao().insertUser(user)
-                        }
+                        val user = User(uid = creatorId, email = email, profileImageUrl = profileImageUrl)
+                        viewModel.insertUser(user)
                         binding?.let { safeBinding ->
                             if (profileImageUrl.isNotEmpty()) {
                                 safeBinding.profileProgressBar.visibility = View.VISIBLE
-                                Picasso.get().load(profileImageUrl)
+                                com.squareup.picasso.Picasso.get().load(profileImageUrl)
                                     .into(safeBinding.userProfileImage, object : com.squareup.picasso.Callback {
                                         override fun onSuccess() {
                                             safeBinding.profileProgressBar.visibility = View.GONE

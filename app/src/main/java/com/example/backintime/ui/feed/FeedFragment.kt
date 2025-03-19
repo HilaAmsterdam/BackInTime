@@ -39,7 +39,8 @@ class FeedFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _binding = FragmentFeedBinding.inflate(inflater, container, false)
-        val repository = TimeCapsuleRepository(AppLocalDb.getDatabase(requireContext()).timeCapsuleDao())
+        val db = AppLocalDb.getDatabase(requireContext())
+        val repository = TimeCapsuleRepository(db.timeCapsuleDao(), db.userDao())
         viewModel = androidx.lifecycle.ViewModelProvider(
             requireActivity(),
             TimeCapsuleViewModelFactory(repository)

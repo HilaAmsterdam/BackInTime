@@ -6,9 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.text.Html
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -69,17 +66,15 @@ class EditMemoryFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup?, savedInstanceState: Bundle?): android.view.View {
         _binding = FragmentEditMemoryBinding.inflate(inflater, container, false)
-        val repository = TimeCapsuleRepository(AppLocalDb.getDatabase(requireContext()).timeCapsuleDao())
-        viewModel = androidx.lifecycle.ViewModelProvider(
-            requireActivity(),
-            TimeCapsuleViewModelFactory(repository)
-        ).get(TimeCapsuleViewModel::class.java)
-        return binding?.root ?: View(inflater.context)
+        val db = AppLocalDb.getDatabase(requireContext())
+        val repository = com.example.backintime.Repository.TimeCapsuleRepository(db.timeCapsuleDao(), db.userDao())
+        viewModel = androidx.lifecycle.ViewModelProvider(requireActivity(), TimeCapsuleViewModelFactory(repository)).get(TimeCapsuleViewModel::class.java)
+        return binding?.root ?: android.view.View(inflater.context)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         val safeBinding = binding ?: return
         val memory: TimeCapsule = args.timeCapsule
 
@@ -131,9 +126,7 @@ class EditMemoryFragment : Fragment() {
                 .show()
         }
 
-        safeBinding.memoryDateInput.setOnClickListener {
-            showDatePickerDialog()
-        }
+        safeBinding.memoryDateInput.setOnClickListener { showDatePickerDialog() }
 
         safeBinding.updateMemoryButton.setOnClickListener {
             val newTitle = safeBinding.editMemoryTitle.text.toString().trim()
@@ -207,24 +200,19 @@ class EditMemoryFragment : Fragment() {
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Memory updated", Toast.LENGTH_SHORT).show()
                 progressViewModel.setLoading(false)
-                lifecycleScope.launch(Dispatchers.IO) {
-                    AppLocalDb.getDatabase(requireContext()).timeCapsuleDao().insertTimeCapsule(
-                        TimeCapsuleEntity(
-                            firebaseId = updatedMemory.id,
-                            title = updatedMemory.title,
-                            content = updatedMemory.content,
-                            openDate = updatedMemory.openDate,
-                            imageUrl = updatedMemory.imageUrl,
-                            creatorName = updatedMemory.creatorName,
-                            creatorId = updatedMemory.creatorId,
-                            notified = false,
-                            moodEmoji = updatedMemory.moodEmoji
-                        )
-                    )
-                    withContext(Dispatchers.Main) {
-                        findNavController().popBackStack()
-                    }
-                }
+                val entity = TimeCapsuleEntity(
+                    firebaseId = updatedMemory.id,
+                    title = updatedMemory.title,
+                    content = updatedMemory.content,
+                    openDate = updatedMemory.openDate,
+                    imageUrl = updatedMemory.imageUrl,
+                    creatorName = updatedMemory.creatorName,
+                    creatorId = updatedMemory.creatorId,
+                    notified = false,
+                    moodEmoji = updatedMemory.moodEmoji
+                )
+                viewModel.updateCapsule(entity)
+                findNavController().popBackStack()
             }
             .addOnFailureListener { e ->
                 Toast.makeText(requireContext(), "Failed to update memory: ${e.message}", Toast.LENGTH_SHORT).show()

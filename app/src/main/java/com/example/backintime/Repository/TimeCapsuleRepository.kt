@@ -1,31 +1,39 @@
 package com.example.backintime.Repository
 
 import com.example.backintime.Model.Dao.TimeCapsuleDao
+import com.example.backintime.Model.Dao.UserDao
 import com.example.backintime.Model.Dao.TimeCapsuleEntity
+import com.example.backintime.Model.User
 
-class TimeCapsuleRepository(private val dao: TimeCapsuleDao) {
-
+class TimeCapsuleRepository(
+    private val timeCapsuleDao: TimeCapsuleDao,
+    private val userDao: UserDao
+) {
     suspend fun insertTimeCapsule(timeCapsule: TimeCapsuleEntity) {
-        dao.insertTimeCapsule(timeCapsule)
+        timeCapsuleDao.insertTimeCapsule(timeCapsule)
     }
 
     suspend fun updateTimeCapsule(timeCapsule: TimeCapsuleEntity) {
-        dao.insertTimeCapsule(timeCapsule)
+        timeCapsuleDao.insertTimeCapsule(timeCapsule)
     }
 
     suspend fun getAllTimeCapsules(): List<TimeCapsuleEntity> {
-        return dao.getAllTimeCapsules()
+        return timeCapsuleDao.getAllTimeCapsules()
     }
 
     suspend fun deleteTimeCapsule(timeCapsule: TimeCapsuleEntity) {
-        dao.deleteTimeCapsule(timeCapsule.firebaseId)
+        timeCapsuleDao.deleteTimeCapsule(timeCapsule.firebaseId)
     }
 
     suspend fun getTimeCapsuleById(firebaseId: String): TimeCapsuleEntity? {
-        return dao.getMemoryByFirebaseId(firebaseId)
+        return timeCapsuleDao.getMemoryByFirebaseId(firebaseId)
     }
 
     suspend fun getTimeCapsulesByCreator(creatorId: String): List<TimeCapsuleEntity> {
-        return dao.getTimeCapsulesByCreator(creatorId)
+        return timeCapsuleDao.getTimeCapsulesByCreator(creatorId)
+    }
+
+    suspend fun insertUser(user: User) {
+        userDao.insertUser(user)
     }
 }

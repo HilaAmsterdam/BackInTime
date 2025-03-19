@@ -12,5 +12,4 @@ class TimeCapsuleViewModelFactory(private val repository: TimeCapsuleRepository)
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-
 }
