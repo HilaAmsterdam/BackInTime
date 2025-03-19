@@ -15,10 +15,12 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.R
 import com.example.backintime.databinding.FragmentEditProfileBinding
 import com.example.backintime.utils.CloudinaryHelper
+import com.example.backintime.viewModel.ProgressViewModel
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
@@ -35,6 +37,7 @@ class EditProfileFragment : Fragment() {
 
     private var capturedImageUri: Uri? = null
     private var navigationDone = false
+    private val progressViewModel: ProgressViewModel by activityViewModels()
 
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         val safeBinding = binding ?: return@registerForActivityResult
@@ -125,6 +128,7 @@ class EditProfileFragment : Fragment() {
         }
 
         safeBinding.saveProfileButton.setOnClickListener {
+            progressViewModel.setLoading(true)
             val newEmail = safeBinding.editProfileEmail.text.toString().trim()
             val newPassword = safeBinding.editProfilePassword.text.toString().trim()
             val confirmPassword = safeBinding.confirmProfilePassword.text.toString().trim()
@@ -132,6 +136,7 @@ class EditProfileFragment : Fragment() {
             if (newPassword.isNotEmpty() && newPassword != confirmPassword) {
                 Log.d("EditProfile", "Passwords do not match.")
                 Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                progressViewModel.setLoading(false)
                 return@setOnClickListener
             }
 
@@ -140,6 +145,7 @@ class EditProfileFragment : Fragment() {
                 val isEmailProvider = user.providerData.any { it.providerId == "password" }
                 if (!isEmailProvider) {
                     Toast.makeText(context, "Email update not supported for this sign-in provider", Toast.LENGTH_SHORT).show()
+                    progressViewModel.setLoading(false)
                     return@setOnClickListener
                 }
 
@@ -148,6 +154,7 @@ class EditProfileFragment : Fragment() {
                 fun tryNavigate() {
                     if (pendingUpdates.get() == 0 && isAdded && !navigationDone) {
                         navigationDone = true
+                        progressViewModel.setLoading(false)
                         findNavController().popBackStack()
                     }
                 }

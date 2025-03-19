@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.Model.AppLocalDb
@@ -14,12 +15,14 @@ import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentMyMemoriesBinding
 import com.example.backintime.ui.post.FeedAdapter
+import com.example.backintime.viewModel.ProgressViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 class MyMemoriesFragment : Fragment() {
@@ -28,6 +31,7 @@ class MyMemoriesFragment : Fragment() {
     private val binding get() = _binding
 
     private val feedItems = mutableListOf<FeedItem>()
+    private val progressViewModel: ProgressViewModel by activityViewModels()
     private lateinit var adapter: FeedAdapter
 
     override fun onCreateView(
@@ -63,6 +67,7 @@ class MyMemoriesFragment : Fragment() {
     }
 
     private fun fetchUserCapsules(userId: String) {
+        progressViewModel.setLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             val db = AppLocalDb.getDatabase(requireContext())
             val capsuleEntities = db.timeCapsuleDao().getTimeCapsulesByCreator(userId)
@@ -84,30 +89,52 @@ class MyMemoriesFragment : Fragment() {
                 feedItems.addAll(groupedItems)
                 adapter.notifyDataSetChanged()
                 binding?.swipeRefreshLayout?.isRefreshing = false
+                progressViewModel.setLoading(false)
             }
         }
     }
 
     private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
         val items = mutableListOf<FeedItem>()
-        val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
-        val now = System.currentTimeMillis()
 
-        val upcomingCapsules = capsules.filter { it.openDate > now }
-        val openedCapsules = capsules.filter { it.openDate <= now }
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val todayStart = calendar.timeInMillis
+        val tomorrowStart = todayStart + 24 * 60 * 60 * 1000L
 
-        if (upcomingCapsules.isNotEmpty()) {
-            val groupedUpcoming = upcomingCapsules.groupBy { dateFormat.format(it.openDate) }
-            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
-            for (date in sortedUpcomingKeys) {
-                items.add(FeedItem.Header("$date"))
-                groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
-            }
+        val openedCapsules = capsules.filter { it.openDate < todayStart }       // עבר
+        val todayCapsules = capsules.filter { it.openDate in todayStart until tomorrowStart } // היום
+        val futureCapsules = capsules.filter { it.openDate >= tomorrowStart }   // עתידי
+
+        if (todayCapsules.isNotEmpty()) {
+            items.add(FeedItem.Header("TODAY MEMORIES"))
+            todayCapsules.sortedBy { it.openDate }
+                .forEach { items.add(FeedItem.Post(it)) }
         }
 
+        if (futureCapsules.isNotEmpty()) {
+            items.add(FeedItem.Header("UPCOMING MEMORIES"))
+
+            val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            val groupedUpcoming = futureCapsules.groupBy { dateFormat.format(it.openDate) }
+            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy {
+                dateFormat.parse(it)?.time ?: Long.MAX_VALUE
+            }
+            for (date in sortedUpcomingKeys) {
+                items.add(FeedItem.Header(date))
+                groupedUpcoming[date]
+                    ?.sortedBy { it.openDate }
+                    ?.forEach { items.add(FeedItem.Post(it)) }
+            }
+        }
         if (openedCapsules.isNotEmpty()) {
-            items.add(FeedItem.Header("Opened"))
-            openedCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
+            items.add(FeedItem.Header("OPENED MEMORIES"))
+            openedCapsules.sortedBy { it.openDate }
+                .forEach { items.add(FeedItem.Post(it)) }
         }
 
         return items

@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
@@ -17,6 +18,7 @@ import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.Model.User
 import com.example.backintime.R
 import com.example.backintime.databinding.FragmentSelectedMemoryBinding
+import com.example.backintime.viewModel.ProgressViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
@@ -33,6 +35,9 @@ class SelectedMemoryFragment : Fragment() {
 
     private val args: SelectedMemoryFragmentArgs by navArgs()
 
+    // קבלת ProgressViewModel משותף מה-Activity
+    private val progressViewModel: ProgressViewModel by activityViewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -45,7 +50,6 @@ class SelectedMemoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding?.let { safeBinding ->
             val capsule = args.timeCapsule
-
             displayMemory(capsule)
             setupButtons(capsule)
             loadUserProfileImage(capsule.creatorId)
@@ -60,22 +64,28 @@ class SelectedMemoryFragment : Fragment() {
     }
 
     private fun refreshMemoryData() {
+        progressViewModel.setLoading(true)
         lifecycleScope.launch(Dispatchers.IO) {
             val db = AppLocalDb.getDatabase(requireContext())
             val updatedEntity = db.timeCapsuleDao().getMemoryByFirebaseId(args.timeCapsule.id)
-            updatedEntity?.let { entity ->
+            if (updatedEntity != null) {
                 val updatedMemory = TimeCapsule(
-                    id = entity.firebaseId,
-                    title = entity.title,
-                    content = entity.content,
-                    openDate = entity.openDate,
-                    imageUrl = entity.imageUrl,
-                    creatorName = entity.creatorName,
-                    creatorId = entity.creatorId,
-                    moodEmoji = entity.moodEmoji
+                    id = updatedEntity.firebaseId,
+                    title = updatedEntity.title,
+                    content = updatedEntity.content,
+                    openDate = updatedEntity.openDate,
+                    imageUrl = updatedEntity.imageUrl,
+                    creatorName = updatedEntity.creatorName,
+                    creatorId = updatedEntity.creatorId,
+                    moodEmoji = updatedEntity.moodEmoji
                 )
                 withContext(Dispatchers.Main) {
                     displayMemory(updatedMemory)
+                    progressViewModel.setLoading(false)
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    progressViewModel.setLoading(false)
                 }
             }
         }
@@ -188,7 +198,8 @@ class SelectedMemoryFragment : Fragment() {
                         val profileImageUrl = document.getString("profileImageUrl") ?: ""
                         val email = document.getString("email") ?: ""
                         val user = User(uid = creatorId, email = email, profileImageUrl = profileImageUrl)
-                        lifecycleScope.launch(Dispatchers.IO) {                            val db = AppLocalDb.getDatabase(requireContext())
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            val db = AppLocalDb.getDatabase(requireContext())
                             db.userDao().insertUser(user)
                         }
                         binding?.let { safeBinding ->

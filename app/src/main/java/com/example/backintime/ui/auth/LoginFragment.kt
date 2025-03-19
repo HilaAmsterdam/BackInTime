@@ -8,15 +8,18 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.FirebaseModel
 import com.example.backintime.Model.SyncManager
 import com.example.backintime.R
 import com.example.backintime.activities.SecondActivity
+import com.example.backintime.viewModel.ProgressViewModel
 import com.google.android.material.button.MaterialButton
 
 class LoginFragment : Fragment() {
     private val firebaseModel = FirebaseModel()
+    private val progressViewModel: ProgressViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,11 +37,14 @@ class LoginFragment : Fragment() {
         val goToRegisterFragment = view.findViewById<MaterialButton>(R.id.signUpClickable)
 
         loginButton.setOnClickListener {
+            progressViewModel.setLoading(true)
             val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
 
+
             if (email.isNotBlank() && password.isNotBlank()) {
                 firebaseModel.loginUser(email, password) { success, errorMessage ->
+                    progressViewModel.setLoading(false)
                     if (!isAdded) return@loginUser
                     val safeContext = context ?: return@loginUser
 

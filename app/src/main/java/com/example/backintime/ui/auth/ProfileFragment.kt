@@ -8,13 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.FirebaseModel
-import com.example.backintime.Model.SyncManager
+import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.R
 import com.example.backintime.activities.MainActivity
 import com.example.backintime.databinding.FragmentProfileBinding
-import com.example.backintime.Model.AppLocalDb
+import com.example.backintime.viewModel.ProgressViewModel
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,6 +31,7 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding
 
     private val firebaseModel = FirebaseModel()
+    private val progressViewModel: ProgressViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,6 +45,8 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val safeBinding = binding ?: return
 
+        progressViewModel.setLoading(true)
+
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             safeBinding.profileEmailEdit.setText(currentUser.email)
@@ -53,7 +57,14 @@ class ProfileFragment : Fragment() {
                     .load(photoUrl)
                     .placeholder(R.drawable.baseline_account_circle_24)
                     .error(R.drawable.baseline_account_circle_24)
-                    .into(safeBinding.imageView)
+                    .into(safeBinding.imageView, object : com.squareup.picasso.Callback {
+                        override fun onSuccess() {
+                            progressViewModel.setLoading(false)
+                        }
+                        override fun onError(e: Exception?) {
+                            progressViewModel.setLoading(false)
+                        }
+                    })
             } else {
                 FirebaseFirestore.getInstance()
                     .collection("users")
@@ -66,18 +77,28 @@ class ProfileFragment : Fragment() {
                                 .load(url)
                                 .placeholder(R.drawable.baseline_account_circle_24)
                                 .error(R.drawable.baseline_account_circle_24)
-                                .into(safeBinding.imageView)
+                                .into(safeBinding.imageView, object : com.squareup.picasso.Callback {
+                                    override fun onSuccess() {
+                                        progressViewModel.setLoading(false)
+                                    }
+                                    override fun onError(e: Exception?) {
+                                        progressViewModel.setLoading(false)
+                                    }
+                                })
                         } else {
                             Log.d("ProfileFragment", "No profileImageUrl in Firestore.")
+                            progressViewModel.setLoading(false)
                         }
                     }
                     .addOnFailureListener { e ->
                         Toast.makeText(requireContext(), "Failed to load profile image", Toast.LENGTH_SHORT).show()
                         Log.e("ProfileFragment", "Firestore error", e)
+                        progressViewModel.setLoading(false)
                     }
             }
         } else {
             Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+            progressViewModel.setLoading(false)
         }
 
         safeBinding.goToEditProfileFab.setOnClickListener {
