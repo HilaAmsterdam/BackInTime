@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -24,6 +25,7 @@ import com.example.backintime.R
 import com.example.backintime.api.RetrofitInstance
 import com.example.backintime.databinding.FragmentEditMemoryBinding
 import com.example.backintime.utils.CloudinaryHelper
+import com.example.backintime.viewModel.ProgressViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +44,8 @@ class EditMemoryFragment : Fragment() {
     private val args: EditMemoryFragmentArgs by navArgs()
     private var capturedImageUri: Uri? = null
 
-    // Launcher for taking a picture with the camera
+    private val progressViewModel: ProgressViewModel by activityViewModels()
+
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         binding?.let { safeBinding ->
             if (success) {
@@ -55,7 +58,6 @@ class EditMemoryFragment : Fragment() {
         }
     }
 
-    // Launcher for picking an image from the gallery
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         binding?.let { safeBinding ->
             if (uri != null) {
@@ -91,9 +93,7 @@ class EditMemoryFragment : Fragment() {
                 .into(safeBinding.editMemoryImage)
         }
 
-        // Set up AutoCompleteTextView for emoji selection
         val emojiAutoComplete = safeBinding.emojiAutoCompleteTextView
-        // Initialize with current moodEmoji value if exists
         emojiAutoComplete.setText(memory.moodEmoji, false)
         lifecycleScope.launch {
             try {
@@ -151,12 +151,12 @@ class EditMemoryFragment : Fragment() {
                 System.currentTimeMillis()
             }
 
-            // Get selected emoji
             val selectedEmoji = emojiAutoComplete.text.toString().trim()
 
-            if (capturedImageUri != null) {
+            progressViewModel.setLoading(true)
+            capturedImageUri?.let { uri ->
                 CloudinaryHelper(requireContext()).uploadImage(
-                    capturedImageUri!!,
+                    uri,
                     onSuccess = { imageUrl ->
                         val updatedMemory = memory.copy(
                             title = newTitle,
@@ -169,9 +169,10 @@ class EditMemoryFragment : Fragment() {
                     },
                     onFailure = { error ->
                         Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
+                        progressViewModel.setLoading(false)
                     }
                 )
-            } else {
+            } ?: run {
                 val updatedMemory = memory.copy(
                     title = newTitle,
                     content = newContent,
@@ -198,10 +199,11 @@ class EditMemoryFragment : Fragment() {
             )
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Memory updated", Toast.LENGTH_SHORT).show()
+                progressViewModel.setLoading(false)
                 lifecycleScope.launch(Dispatchers.IO) {
                     val localDb = AppLocalDb.getDatabase(requireContext())
                     localDb.timeCapsuleDao().insertTimeCapsule(
-                        com.example.backintime.Model.Dao.TimeCapsuleEntity(
+                        TimeCapsuleEntity(
                             firebaseId = updatedMemory.id,
                             title = updatedMemory.title,
                             content = updatedMemory.content,
@@ -219,6 +221,7 @@ class EditMemoryFragment : Fragment() {
             }
             .addOnFailureListener { e ->
                 Toast.makeText(requireContext(), "Failed to update memory: ${e.message}", Toast.LENGTH_SHORT).show()
+                progressViewModel.setLoading(false)
             }
     }
 
@@ -252,3 +255,5 @@ class EditMemoryFragment : Fragment() {
         _binding = null
     }
 }
+
+

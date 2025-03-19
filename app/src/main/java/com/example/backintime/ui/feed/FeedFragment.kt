@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.Model.AppLocalDb
@@ -13,6 +14,7 @@ import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentFeedBinding
 import com.example.backintime.ui.post.FeedAdapter
+import com.example.backintime.viewModel.ProgressViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,6 +30,7 @@ class FeedFragment : Fragment() {
 
     private val feedItems = mutableListOf<FeedItem>()
     private lateinit var adapter: FeedAdapter
+    private val progressViewModel: ProgressViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -63,6 +66,7 @@ class FeedFragment : Fragment() {
     }
 
     private fun fetchCapsulesFromRoom() {
+        progressViewModel.setLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             val db = AppLocalDb.getDatabase(requireContext())
             val capsuleEntities = db.timeCapsuleDao().getAllTimeCapsules()
@@ -84,6 +88,7 @@ class FeedFragment : Fragment() {
                 feedItems.addAll(groupedItems)
                 adapter.notifyDataSetChanged()
                 binding?.swipeRefreshLayout?.isRefreshing = false
+                progressViewModel.setLoading(false)
             }
         }
     }

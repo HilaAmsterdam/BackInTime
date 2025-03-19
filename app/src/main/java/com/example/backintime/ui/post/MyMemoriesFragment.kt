@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.backintime.Model.AppLocalDb
@@ -14,6 +15,7 @@ import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentMyMemoriesBinding
 import com.example.backintime.ui.post.FeedAdapter
+import com.example.backintime.viewModel.ProgressViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +31,7 @@ class MyMemoriesFragment : Fragment() {
     private val binding get() = _binding
 
     private val feedItems = mutableListOf<FeedItem>()
+    private val progressViewModel: ProgressViewModel by activityViewModels()
     private lateinit var adapter: FeedAdapter
 
     override fun onCreateView(
@@ -64,6 +67,7 @@ class MyMemoriesFragment : Fragment() {
     }
 
     private fun fetchUserCapsules(userId: String) {
+        progressViewModel.setLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             val db = AppLocalDb.getDatabase(requireContext())
             val capsuleEntities = db.timeCapsuleDao().getTimeCapsulesByCreator(userId)
@@ -85,6 +89,7 @@ class MyMemoriesFragment : Fragment() {
                 feedItems.addAll(groupedItems)
                 adapter.notifyDataSetChanged()
                 binding?.swipeRefreshLayout?.isRefreshing = false
+                progressViewModel.setLoading(false)
             }
         }
     }

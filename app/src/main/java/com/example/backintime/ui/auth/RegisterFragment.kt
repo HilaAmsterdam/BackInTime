@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.backintime.Model.FirebaseModel
 import com.example.backintime.Model.SyncManager
@@ -19,6 +20,7 @@ import com.example.backintime.R
 import com.example.backintime.activities.SecondActivity
 import com.example.backintime.databinding.FragmentRegisterBinding
 import com.example.backintime.utils.CloudinaryHelper
+import com.example.backintime.viewModel.ProgressViewModel
 import java.io.File
 
 class RegisterFragment : Fragment() {
@@ -28,6 +30,8 @@ class RegisterFragment : Fragment() {
 
     private val firebaseModel = FirebaseModel()
     private var capturedImageUri: Uri? = null
+    private val progressViewModel: ProgressViewModel by activityViewModels()
+
 
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         binding?.let { safeBinding ->
@@ -92,6 +96,7 @@ class RegisterFragment : Fragment() {
         }
 
         registerButton.setOnClickListener {
+            progressViewModel.setLoading(true)
             val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
 
