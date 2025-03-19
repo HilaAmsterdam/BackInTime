@@ -9,18 +9,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.Model.FeedItem
-import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.databinding.FragmentMyMemoriesBinding
-import com.example.backintime.ui.post.FeedAdapter
 import com.example.backintime.viewModel.ProgressViewModel
+import com.example.backintime.viewModel.TimeCapsuleViewModel
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -29,21 +23,20 @@ class MyMemoriesFragment : Fragment() {
 
     private var _binding: FragmentMyMemoriesBinding? = null
     private val binding get() = _binding
-
     private val feedItems = mutableListOf<FeedItem>()
     private val progressViewModel: ProgressViewModel by activityViewModels()
     private lateinit var adapter: FeedAdapter
+    private lateinit var viewModel: TimeCapsuleViewModel
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentMyMemoriesBinding.inflate(inflater, container, false)
-        return _binding?.root ?: View(inflater.context)
+        viewModel = (requireActivity() as androidx.fragment.app.FragmentActivity).let {
+            androidx.lifecycle.ViewModelProvider(it).get(TimeCapsuleViewModel::class.java)
+        }
+        return binding?.root ?: View(inflater.context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         binding?.let { bindingNonNull ->
             adapter = FeedAdapter(feedItems) { selectedCapsule ->
                 val action = MyMemoriesFragmentDirections.actionMyMemoriesFragmentToSelectedMemoryFragment(selectedCapsule)
@@ -51,27 +44,18 @@ class MyMemoriesFragment : Fragment() {
             }
             bindingNonNull.recyclerViewMyMemories.layoutManager = LinearLayoutManager(requireContext())
             bindingNonNull.recyclerViewMyMemories.adapter = adapter
-
             bindingNonNull.swipeRefreshLayout.setOnRefreshListener {
-                SyncManager.listenFirebaseDataToRoom(requireContext())
-                fetchUserCapsules(FirebaseAuth.getInstance().currentUser?.uid ?: "")
+                viewModel.loadCapsules()
             }
         }
-
         val user = FirebaseAuth.getInstance().currentUser
         if (user == null) {
             Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
             return
         }
-        fetchUserCapsules(user.uid)
-    }
-
-    private fun fetchUserCapsules(userId: String) {
         progressViewModel.setLoading(true)
-        CoroutineScope(Dispatchers.IO).launch {
-            val db = AppLocalDb.getDatabase(requireContext())
-            val capsuleEntities = db.timeCapsuleDao().getTimeCapsulesByCreator(userId)
-            val capsulesList = capsuleEntities.map { entity ->
+        viewModel.capsules.observe(viewLifecycleOwner) { capsules ->
+            val capsulesList = capsules.map { entity ->
                 TimeCapsule(
                     id = entity.firebaseId,
                     title = entity.title,
@@ -79,24 +63,23 @@ class MyMemoriesFragment : Fragment() {
                     openDate = entity.openDate,
                     imageUrl = entity.imageUrl,
                     creatorName = entity.creatorName,
-                    creatorId = entity.creatorId
+                    creatorId = entity.creatorId,
+                    moodEmoji = entity.moodEmoji
                 )
             }
-            val sortedCapsules = capsulesList.sortedBy { it.openDate }
-            val groupedItems = prepareFeedItems(sortedCapsules)
-            withContext(Dispatchers.Main) {
-                feedItems.clear()
-                feedItems.addAll(groupedItems)
-                adapter.notifyDataSetChanged()
-                binding?.swipeRefreshLayout?.isRefreshing = false
-                progressViewModel.setLoading(false)
-            }
+            val userCapsules = capsulesList.filter { it.creatorId == user.uid }
+            val sortedCapsules = userCapsules.sortedBy { it.openDate }
+            feedItems.clear()
+            feedItems.addAll(prepareFeedItems(sortedCapsules))
+            adapter.notifyDataSetChanged()
+            binding?.swipeRefreshLayout?.isRefreshing = false
+            progressViewModel.setLoading(false)
         }
+        viewModel.loadCapsules()
     }
 
     private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
         val items = mutableListOf<FeedItem>()
-
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -105,20 +88,17 @@ class MyMemoriesFragment : Fragment() {
         }
         val todayStart = calendar.timeInMillis
         val tomorrowStart = todayStart + 24 * 60 * 60 * 1000L
-
-        val openedCapsules = capsules.filter { it.openDate < todayStart }       // עבר
-        val todayCapsules = capsules.filter { it.openDate in todayStart until tomorrowStart } // היום
-        val futureCapsules = capsules.filter { it.openDate >= tomorrowStart }   // עתידי
+        val openedCapsules = capsules.filter { it.openDate < todayStart }
+        val todayCapsules = capsules.filter { it.openDate in todayStart until tomorrowStart }
+        val futureCapsules = capsules.filter { it.openDate >= tomorrowStart }
 
         if (todayCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("TODAY MEMORIES"))
-            todayCapsules.sortedBy { it.openDate }
-                .forEach { items.add(FeedItem.Post(it)) }
+            todayCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
         }
 
         if (futureCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("UPCOMING MEMORIES"))
-
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             val groupedUpcoming = futureCapsules.groupBy { dateFormat.format(it.openDate) }
             val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy {
@@ -126,15 +106,13 @@ class MyMemoriesFragment : Fragment() {
             }
             for (date in sortedUpcomingKeys) {
                 items.add(FeedItem.Header(date))
-                groupedUpcoming[date]
-                    ?.sortedBy { it.openDate }
-                    ?.forEach { items.add(FeedItem.Post(it)) }
+                groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
             }
         }
+
         if (openedCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("OPENED MEMORIES"))
-            openedCapsules.sortedBy { it.openDate }
-                .forEach { items.add(FeedItem.Post(it)) }
+            openedCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
         }
 
         return items
