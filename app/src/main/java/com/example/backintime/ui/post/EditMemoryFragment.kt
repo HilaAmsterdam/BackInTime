@@ -102,9 +102,7 @@ class EditMemoryFragment : Fragment() {
                 }
                 val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, emojiStrings)
                 emojiAutoComplete.setAdapter(adapter)
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Failed to load emojis", Toast.LENGTH_SHORT).show()
-            }
+            } catch (e: Exception) { }
         }
 
         safeBinding.addFromGalleryButton.setOnClickListener {

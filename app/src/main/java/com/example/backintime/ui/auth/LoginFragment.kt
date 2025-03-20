@@ -37,6 +37,7 @@ class LoginFragment : Fragment() {
         val goToRegisterFragment = view.findViewById<MaterialButton>(R.id.signUpClickable)
 
         loginButton.setOnClickListener {
+            loginButton.isEnabled = false
             progressViewModel.setLoading(true)
             val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
@@ -57,10 +58,12 @@ class LoginFragment : Fragment() {
                         startActivity(intent)
                         activity?.finish()
                     } else {
+                        loginButton.isEnabled = true
                         Toast.makeText(safeContext, "error: $errorMessage", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
+                loginButton.isEnabled = true
                 Toast.makeText(requireContext(), " Please fill in all fields.", Toast.LENGTH_SHORT).show()
             }
         }

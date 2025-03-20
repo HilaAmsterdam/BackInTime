@@ -75,8 +75,6 @@ class ProfileFragment : Fragment() {
                         if (!url.isNullOrEmpty()) {
                             Picasso.get()
                                 .load(url)
-                                .placeholder(R.drawable.baseline_account_circle_24)
-                                .error(R.drawable.baseline_account_circle_24)
                                 .into(safeBinding.imageView, object : com.squareup.picasso.Callback {
                                     override fun onSuccess() {
                                         progressViewModel.setLoading(false)

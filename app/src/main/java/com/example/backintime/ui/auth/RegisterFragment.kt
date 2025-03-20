@@ -96,6 +96,7 @@ class RegisterFragment : Fragment() {
         }
 
         registerButton.setOnClickListener {
+            registerButton.isEnabled = false
             progressViewModel.setLoading(true)
             val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
@@ -112,10 +113,12 @@ class RegisterFragment : Fragment() {
                                     startActivity(intent)
                                     activity?.finish()
                                 } else {
+                                    registerButton.isEnabled = true
                                     Toast.makeText(requireContext(), "Error: $errorMessage", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }, onFailure = { error ->
+                            registerButton.isEnabled = true
                             Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
                         })
                     }
@@ -129,11 +132,15 @@ class RegisterFragment : Fragment() {
                             activity?.finish()
                         } else {
                             Toast.makeText(requireContext(), "Error: $errorMessage", Toast.LENGTH_SHORT).show()
+                            registerButton.isEnabled = true
+                            progressViewModel.setLoading(false)
                         }
                     }
                 }
             } else {
                 Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                registerButton.isEnabled = true
+                progressViewModel.setLoading(false)
             }
         }
 
