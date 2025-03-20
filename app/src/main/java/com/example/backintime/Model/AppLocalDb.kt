@@ -13,7 +13,7 @@ import com.example.backintime.Model.Dao.TimeCapsuleEntity
         TimeCapsuleEntity::class,
         com.example.backintime.Model.User::class
     ],
-    version = 2,
+    version =2,
     exportSchema = false
 )
 abstract class AppLocalDb : RoomDatabase() {

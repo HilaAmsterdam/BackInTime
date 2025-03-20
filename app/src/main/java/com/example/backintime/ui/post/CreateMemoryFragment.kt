@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navOptions
 import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.Model.Dao.TimeCapsuleEntity
@@ -181,8 +182,12 @@ class CreateMemoryFragment : Fragment() {
                                         moodEmoji = capsule.moodEmoji
                                     )
                                     viewModel.insertCapsule(entity)
-                                    val action = CreateMemoryFragmentDirections.actionCreateMemoryFragmentToFeedFragment()
-                                    findNavController().navigate(action)
+                                    val options = navOptions {
+                                        popUpTo(R.id.createMemoryFragment) {
+                                            inclusive = true
+                                        }
+                                    }
+                                    findNavController().navigate(CreateMemoryFragmentDirections.actionCreateMemoryFragmentToFeedFragment(), options)
                                     progressViewModel.setLoading(false)
                                     safeBinding.publishMemoryFab.isEnabled = true
                                 }

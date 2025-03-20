@@ -17,8 +17,8 @@ import com.example.backintime.R
 import com.example.backintime.databinding.FragmentSelectedMemoryBinding
 import com.example.backintime.viewModel.ProgressViewModel
 import com.example.backintime.viewModel.TimeCapsuleViewModel
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseAuth
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -119,19 +119,28 @@ class SelectedMemoryFragment : Fragment() {
                         .setTitle("Delete Memory")
                         .setMessage("Are you sure you want to delete this memory?")
                         .setPositiveButton("Yes") { _, _ ->
-                            val entity = com.example.backintime.Model.Dao.TimeCapsuleEntity(
-                                firebaseId = capsule.id,
-                                title = capsule.title,
-                                content = capsule.content,
-                                openDate = capsule.openDate,
-                                imageUrl = capsule.imageUrl,
-                                creatorName = capsule.creatorName,
-                                creatorId = capsule.creatorId,
-                                notified = false,
-                                moodEmoji = capsule.moodEmoji
-                            )
-                            viewModel.deleteCapsule(entity)
-                            safeBinding.root.findNavController().popBackStack()
+                            FirebaseFirestore.getInstance()
+                                .collection("time_capsules")
+                                .document(capsule.id)
+                                .delete()
+                                .addOnSuccessListener {
+                                    val entity = com.example.backintime.Model.Dao.TimeCapsuleEntity(
+                                        firebaseId = capsule.id,
+                                        title = capsule.title,
+                                        content = capsule.content,
+                                        openDate = capsule.openDate,
+                                        imageUrl = capsule.imageUrl,
+                                        creatorName = capsule.creatorName,
+                                        creatorId = capsule.creatorId,
+                                        notified = false,
+                                        moodEmoji = capsule.moodEmoji
+                                    )
+                                    viewModel.deleteCapsule(entity)
+                                    safeBinding.root.findNavController().popBackStack()
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(requireContext(), "Failed to delete from Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
                         }
                         .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
                         .show()
@@ -141,7 +150,6 @@ class SelectedMemoryFragment : Fragment() {
     }
 
     private fun loadUserProfileImage(creatorId: String) {
-        // במקום גישה ישירה ל־Room, נעשה שימוש בפונקציה insertUser של ה־ViewModel
         lifecycleScope.launch(Dispatchers.IO) {
             val db = com.example.backintime.Model.AppLocalDb.getDatabase(requireContext())
             val cachedUser = db.userDao().getUserById(creatorId)
