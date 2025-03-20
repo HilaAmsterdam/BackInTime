@@ -5,17 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.backintime.Model.AppLocalDb
-import com.example.backintime.Model.FeedItem
-import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
+import com.example.backintime.Model.FeedItem
+import com.example.backintime.Model.AppLocalDb
+import com.example.backintime.Repository.TimeCapsuleRepository
 import com.example.backintime.databinding.FragmentFeedBinding
 import com.example.backintime.ui.post.FeedAdapter
 import com.example.backintime.viewModel.ProgressViewModel
-import kotlinx.coroutines.CoroutineScope
+import com.example.backintime.viewModel.TimeCapsuleViewModel
+import com.example.backintime.viewModel.TimeCapsuleViewModelFactory
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,75 +28,67 @@ class FeedFragment : Fragment() {
 
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding
-
     private val feedItems = mutableListOf<FeedItem>()
     private lateinit var adapter: FeedAdapter
-    private val progressViewModel: ProgressViewModel by activityViewModels()
+    private lateinit var viewModel: TimeCapsuleViewModel
+    private val progressViewModel by lazy {
+        (requireActivity() as androidx.fragment.app.FragmentActivity).run {
+            androidx.lifecycle.ViewModelProvider(this).get(ProgressViewModel::class.java)
+        }
+    }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _binding = FragmentFeedBinding.inflate(inflater, container, false)
+        val db = AppLocalDb.getDatabase(requireContext())
+        val repository = TimeCapsuleRepository(db.timeCapsuleDao(), db.userDao())
+        viewModel = androidx.lifecycle.ViewModelProvider(
+            requireActivity(),
+            TimeCapsuleViewModelFactory(repository)
+        ).get(TimeCapsuleViewModel::class.java)
         return binding?.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val safeBinding = binding ?: return
+        val currentBinding = binding ?: return
 
         adapter = FeedAdapter(feedItems) { selectedCapsule ->
             val action = FeedFragmentDirections.actionFeedFragmentToSelectedMemoryFragment(selectedCapsule)
-            safeBinding.root.findNavController().navigate(action)
+            currentBinding.root.findNavController().navigate(action)
         }
-        safeBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
-        safeBinding.recyclerViewFeed.adapter = adapter
+        currentBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
+        currentBinding.recyclerViewFeed.adapter = adapter
 
-        safeBinding.swipeRefreshLayout.setOnRefreshListener {
-            SyncManager.listenFirebaseDataToRoom(requireContext())
-            fetchCapsulesFromRoom()
+        currentBinding.swipeRefreshLayout.setOnRefreshListener {
+            fetchCapsulesFromFirestore()
         }
 
-        fetchCapsulesFromRoom()
+        fetchCapsulesFromFirestore()
     }
 
-    override fun onResume() {
-        super.onResume()
-        SyncManager.listenFirebaseDataToRoom(requireContext())
-        fetchCapsulesFromRoom()
-    }
-
-    private fun fetchCapsulesFromRoom() {
+    private fun fetchCapsulesFromFirestore() {
         progressViewModel.setLoading(true)
-        CoroutineScope(Dispatchers.IO).launch {
-            val db = AppLocalDb.getDatabase(requireContext())
-            val capsuleEntities = db.timeCapsuleDao().getAllTimeCapsules()
-            val capsulesList = capsuleEntities.map { entity ->
-                TimeCapsule(
-                    id = entity.firebaseId,
-                    title = entity.title,
-                    content = entity.content,
-                    openDate = entity.openDate,
-                    imageUrl = entity.imageUrl,
-                    creatorName = entity.creatorName,
-                    creatorId = entity.creatorId
-                )
-            }
-            val sortedCapsules = capsulesList.sortedBy { it.openDate }
-            val groupedItems = prepareFeedItems(sortedCapsules)
-            withContext(Dispatchers.Main) {
+        FirebaseFirestore.getInstance()
+            .collection("time_capsules")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val capsulesList = snapshot.documents.mapNotNull { document ->
+                    document.toObject(TimeCapsule::class.java)?.copy(id = document.id)
+                }
+                val sortedCapsules = capsulesList.sortedBy { it.openDate }
+                val groupedItems = prepareFeedItems(sortedCapsules)
                 feedItems.clear()
                 feedItems.addAll(groupedItems)
                 adapter.notifyDataSetChanged()
                 binding?.swipeRefreshLayout?.isRefreshing = false
                 progressViewModel.setLoading(false)
             }
-        }
+            .addOnFailureListener {
+                progressViewModel.setLoading(false)
+            }
     }
 
     private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
         val items = mutableListOf<FeedItem>()
-
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -104,20 +97,17 @@ class FeedFragment : Fragment() {
         }
         val todayStart = calendar.timeInMillis
         val tomorrowStart = todayStart + 24 * 60 * 60 * 1000L
-
-        val openedCapsules = capsules.filter { it.openDate < todayStart }       // עבר
-        val todayCapsules = capsules.filter { it.openDate in todayStart until tomorrowStart } // היום
-        val futureCapsules = capsules.filter { it.openDate >= tomorrowStart }   // עתידי
+        val openedCapsules = capsules.filter { it.openDate < todayStart }
+        val todayCapsules = capsules.filter { it.openDate in todayStart until tomorrowStart }
+        val futureCapsules = capsules.filter { it.openDate >= tomorrowStart }
 
         if (todayCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("TODAY MEMORIES"))
-            todayCapsules.sortedBy { it.openDate }
-                .forEach { items.add(FeedItem.Post(it)) }
+            todayCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
         }
 
         if (futureCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("UPCOMING MEMORIES"))
-
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             val groupedUpcoming = futureCapsules.groupBy { dateFormat.format(it.openDate) }
             val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy {
@@ -125,22 +115,17 @@ class FeedFragment : Fragment() {
             }
             for (date in sortedUpcomingKeys) {
                 items.add(FeedItem.Header(date))
-                groupedUpcoming[date]
-                    ?.sortedBy { it.openDate }
-                    ?.forEach { items.add(FeedItem.Post(it)) }
+                groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
             }
         }
+
         if (openedCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("OPENED MEMORIES"))
-            openedCapsules.sortedBy { it.openDate }
-                .forEach { items.add(FeedItem.Post(it)) }
+            openedCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
         }
 
         return items
     }
-
-
-
 
     override fun onDestroyView() {
         super.onDestroyView()

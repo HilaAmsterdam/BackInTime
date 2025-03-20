@@ -6,9 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.text.Html
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,7 +22,10 @@ import com.example.backintime.R
 import com.example.backintime.api.RetrofitInstance
 import com.example.backintime.databinding.FragmentEditMemoryBinding
 import com.example.backintime.utils.CloudinaryHelper
+import com.example.backintime.Repository.TimeCapsuleRepository
 import com.example.backintime.viewModel.ProgressViewModel
+import com.example.backintime.viewModel.TimeCapsuleViewModel
+import com.example.backintime.viewModel.TimeCapsuleViewModelFactory
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
@@ -40,11 +40,10 @@ class EditMemoryFragment : Fragment() {
 
     private var _binding: FragmentEditMemoryBinding? = null
     private val binding get() = _binding
-
     private val args: EditMemoryFragmentArgs by navArgs()
     private var capturedImageUri: Uri? = null
-
     private val progressViewModel: ProgressViewModel by activityViewModels()
+    private lateinit var viewModel: TimeCapsuleViewModel
 
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         binding?.let { safeBinding ->
@@ -67,24 +66,23 @@ class EditMemoryFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup?, savedInstanceState: Bundle?): android.view.View {
         _binding = FragmentEditMemoryBinding.inflate(inflater, container, false)
-        return binding?.root ?: View(inflater.context)
+        val db = AppLocalDb.getDatabase(requireContext())
+        val repository = com.example.backintime.Repository.TimeCapsuleRepository(db.timeCapsuleDao(), db.userDao())
+        viewModel = androidx.lifecycle.ViewModelProvider(requireActivity(), TimeCapsuleViewModelFactory(repository)).get(TimeCapsuleViewModel::class.java)
+        return binding?.root ?: android.view.View(inflater.context)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         val safeBinding = binding ?: return
-
         val memory: TimeCapsule = args.timeCapsule
 
         safeBinding.editMemoryTitle.setText(memory.title)
         safeBinding.editMemoryDescription.setText(memory.content)
         val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
         safeBinding.memoryDateInput.setText(sdf.format(memory.openDate))
+
         if (memory.imageUrl.isNotEmpty()) {
             Picasso.get()
                 .load(memory.imageUrl)
@@ -95,6 +93,7 @@ class EditMemoryFragment : Fragment() {
 
         val emojiAutoComplete = safeBinding.emojiAutoCompleteTextView
         emojiAutoComplete.setText(memory.moodEmoji, false)
+
         lifecycleScope.launch {
             try {
                 val emojiList = RetrofitInstance.api.getAllEmojis()
@@ -116,11 +115,7 @@ class EditMemoryFragment : Fragment() {
                     when (which) {
                         0 -> {
                             val imageFile = createImageFile()
-                            capturedImageUri = FileProvider.getUriForFile(
-                                requireContext(),
-                                "com.example.backintime.fileprovider",
-                                imageFile
-                            )
+                            capturedImageUri = FileProvider.getUriForFile(requireContext(), "com.example.backintime.fileprovider", imageFile)
                             takePictureLauncher.launch(capturedImageUri)
                         }
                         1 -> {
@@ -131,9 +126,7 @@ class EditMemoryFragment : Fragment() {
                 .show()
         }
 
-        safeBinding.memoryDateInput.setOnClickListener {
-            showDatePickerDialog()
-        }
+        safeBinding.memoryDateInput.setOnClickListener { showDatePickerDialog() }
 
         safeBinding.updateMemoryButton.setOnClickListener {
             val newTitle = safeBinding.editMemoryTitle.text.toString().trim()
@@ -158,25 +151,28 @@ class EditMemoryFragment : Fragment() {
             }
 
             progressViewModel.setLoading(true)
-            capturedImageUri?.let { uri ->
-                CloudinaryHelper(requireContext()).uploadImage(
-                    uri,
-                    onSuccess = { imageUrl ->
-                        val updatedMemory = memory.copy(
-                            title = newTitle,
-                            content = newContent,
-                            openDate = openDate,
-                            imageUrl = imageUrl,
-                            moodEmoji = selectedEmoji
-                        )
-                        updateMemory(updatedMemory)
-                    },
-                    onFailure = { error ->
-                        Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
-                        progressViewModel.setLoading(false)
-                    }
-                )
-            } ?: run {
+
+            if (capturedImageUri != null) {
+                capturedImageUri?.let { uri ->
+                    CloudinaryHelper(requireContext()).uploadImage(
+                        uri,
+                        onSuccess = { imageUrl ->
+                            val updatedMemory = memory.copy(
+                                title = newTitle,
+                                content = newContent,
+                                openDate = openDate,
+                                imageUrl = imageUrl,
+                                moodEmoji = selectedEmoji
+                            )
+                            updateMemory(updatedMemory)
+                        },
+                        onFailure = { error ->
+                            Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
+                            progressViewModel.setLoading(false)
+                        }
+                    )
+                }
+            } else {
                 val updatedMemory = memory.copy(
                     title = newTitle,
                     content = newContent,
@@ -204,24 +200,19 @@ class EditMemoryFragment : Fragment() {
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Memory updated", Toast.LENGTH_SHORT).show()
                 progressViewModel.setLoading(false)
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val localDb = AppLocalDb.getDatabase(requireContext())
-                    localDb.timeCapsuleDao().insertTimeCapsule(
-                        TimeCapsuleEntity(
-                            firebaseId = updatedMemory.id,
-                            title = updatedMemory.title,
-                            content = updatedMemory.content,
-                            openDate = updatedMemory.openDate,
-                            imageUrl = updatedMemory.imageUrl,
-                            creatorName = updatedMemory.creatorName,
-                            creatorId = updatedMemory.creatorId,
-                            moodEmoji = updatedMemory.moodEmoji
-                        )
-                    )
-                    withContext(Dispatchers.Main) {
-                        findNavController().popBackStack()
-                    }
-                }
+                val entity = TimeCapsuleEntity(
+                    firebaseId = updatedMemory.id,
+                    title = updatedMemory.title,
+                    content = updatedMemory.content,
+                    openDate = updatedMemory.openDate,
+                    imageUrl = updatedMemory.imageUrl,
+                    creatorName = updatedMemory.creatorName,
+                    creatorId = updatedMemory.creatorId,
+                    notified = false,
+                    moodEmoji = updatedMemory.moodEmoji
+                )
+                viewModel.updateCapsule(entity)
+                findNavController().popBackStack()
             }
             .addOnFailureListener { e ->
                 Toast.makeText(requireContext(), "Failed to update memory: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -259,5 +250,3 @@ class EditMemoryFragment : Fragment() {
         _binding = null
     }
 }
-
-

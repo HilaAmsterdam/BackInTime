@@ -10,17 +10,15 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.example.backintime.Model.AppLocalDb
-import com.example.backintime.Model.SyncManager
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.Model.User
 import com.example.backintime.R
 import com.example.backintime.databinding.FragmentSelectedMemoryBinding
 import com.example.backintime.viewModel.ProgressViewModel
-import com.google.firebase.auth.FirebaseAuth
+import com.example.backintime.viewModel.TimeCapsuleViewModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseAuth
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,62 +30,45 @@ class SelectedMemoryFragment : Fragment() {
 
     private var _binding: FragmentSelectedMemoryBinding? = null
     private val binding get() = _binding
-
     private val args: SelectedMemoryFragmentArgs by navArgs()
-
-    // קבלת ProgressViewModel משותף מה-Activity
     private val progressViewModel: ProgressViewModel by activityViewModels()
+    private lateinit var viewModel: TimeCapsuleViewModel
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSelectedMemoryBinding.inflate(inflater, container, false)
+        viewModel = (requireActivity() as androidx.fragment.app.FragmentActivity).let {
+            androidx.lifecycle.ViewModelProvider(it).get(TimeCapsuleViewModel::class.java)
+        }
         return binding?.root ?: inflater.inflate(R.layout.fragment_selected_memory, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         binding?.let { safeBinding ->
             val capsule = args.timeCapsule
             displayMemory(capsule)
             setupButtons(capsule)
             loadUserProfileImage(capsule.creatorId)
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Refresh local data from Firestore to ensure deleted posts are removed from Room.
-        SyncManager.listenFirebaseDataToRoom(requireContext())
         refreshMemoryData()
     }
 
     private fun refreshMemoryData() {
         progressViewModel.setLoading(true)
-        lifecycleScope.launch(Dispatchers.IO) {
-            val db = AppLocalDb.getDatabase(requireContext())
-            val updatedEntity = db.timeCapsuleDao().getMemoryByFirebaseId(args.timeCapsule.id)
-            if (updatedEntity != null) {
+        viewModel.getCapsuleById(args.timeCapsule.id) { entity ->
+            entity?.let {
                 val updatedMemory = TimeCapsule(
-                    id = updatedEntity.firebaseId,
-                    title = updatedEntity.title,
-                    content = updatedEntity.content,
-                    openDate = updatedEntity.openDate,
-                    imageUrl = updatedEntity.imageUrl,
-                    creatorName = updatedEntity.creatorName,
-                    creatorId = updatedEntity.creatorId,
-                    moodEmoji = updatedEntity.moodEmoji
+                    id = it.firebaseId,
+                    title = it.title,
+                    content = it.content,
+                    openDate = it.openDate,
+                    imageUrl = it.imageUrl,
+                    creatorName = it.creatorName,
+                    creatorId = it.creatorId,
+                    moodEmoji = it.moodEmoji
                 )
-                withContext(Dispatchers.Main) {
-                    displayMemory(updatedMemory)
-                    progressViewModel.setLoading(false)
-                }
-            } else {
-                withContext(Dispatchers.Main) {
-                    progressViewModel.setLoading(false)
-                }
+                displayMemory(updatedMemory)
             }
+            progressViewModel.setLoading(false)
         }
     }
 
@@ -98,7 +79,6 @@ class SelectedMemoryFragment : Fragment() {
             safeBinding.memoryEmail.text = memory.creatorName
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             safeBinding.memoryDate.text = dateFormat.format(memory.openDate)
-
             if (memory.imageUrl.isNotEmpty()) {
                 safeBinding.memoryProgressBar.visibility = View.VISIBLE
                 Picasso.get()
@@ -117,7 +97,6 @@ class SelectedMemoryFragment : Fragment() {
                 safeBinding.memoryImage.setImageResource(R.drawable.ic_profile_placeholder)
                 safeBinding.memoryProgressBar.visibility = View.GONE
             }
-            // Display mood emoji as saved in the capsule
             safeBinding.moodTextView.text = memory.moodEmoji
         }
     }
@@ -131,38 +110,39 @@ class SelectedMemoryFragment : Fragment() {
             } else {
                 safeBinding.goToEditMemoryFab.visibility = View.VISIBLE
                 safeBinding.deleteMemoryFab.visibility = View.VISIBLE
-
                 safeBinding.goToEditMemoryFab.setOnClickListener {
                     val action = SelectedMemoryFragmentDirections.actionSelectedMemoryFragmentToEditMemoryFragment(capsule)
                     safeBinding.root.findNavController().navigate(action)
                 }
-
                 safeBinding.deleteMemoryFab.setOnClickListener {
                     AlertDialog.Builder(requireContext())
                         .setTitle("Delete Memory")
                         .setMessage("Are you sure you want to delete this memory?")
-                        .setPositiveButton("Yes") { dialog, _ ->
+                        .setPositiveButton("Yes") { _, _ ->
                             FirebaseFirestore.getInstance()
                                 .collection("time_capsules")
                                 .document(capsule.id)
                                 .delete()
                                 .addOnSuccessListener {
-                                    Toast.makeText(requireContext(), "Memory deleted", Toast.LENGTH_SHORT).show()
-                                    lifecycleScope.launch(Dispatchers.IO) {
-                                        val localDb = AppLocalDb.getDatabase(requireContext())
-                                        localDb.timeCapsuleDao().deleteTimeCapsule(capsule.id)
-                                        withContext(Dispatchers.Main) {
-                                            safeBinding.root.findNavController().popBackStack()
-                                        }
-                                    }
+                                    val entity = com.example.backintime.Model.Dao.TimeCapsuleEntity(
+                                        firebaseId = capsule.id,
+                                        title = capsule.title,
+                                        content = capsule.content,
+                                        openDate = capsule.openDate,
+                                        imageUrl = capsule.imageUrl,
+                                        creatorName = capsule.creatorName,
+                                        creatorId = capsule.creatorId,
+                                        notified = false,
+                                        moodEmoji = capsule.moodEmoji
+                                    )
+                                    viewModel.deleteCapsule(entity)
+                                    safeBinding.root.findNavController().popBackStack()
                                 }
                                 .addOnFailureListener { e ->
-                                    Toast.makeText(requireContext(), "Deletion failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(requireContext(), "Failed to delete from Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
                                 }
                         }
-                        .setNegativeButton("No") { dialog, _ ->
-                            dialog.dismiss()
-                        }
+                        .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
                         .show()
                 }
             }
@@ -171,14 +151,13 @@ class SelectedMemoryFragment : Fragment() {
 
     private fun loadUserProfileImage(creatorId: String) {
         lifecycleScope.launch(Dispatchers.IO) {
-            val db = AppLocalDb.getDatabase(requireContext())
+            val db = com.example.backintime.Model.AppLocalDb.getDatabase(requireContext())
             val cachedUser = db.userDao().getUserById(creatorId)
             if (cachedUser != null && cachedUser.profileImageUrl.isNotEmpty()) {
                 withContext(Dispatchers.Main) {
                     binding?.let { safeBinding ->
                         safeBinding.profileProgressBar.visibility = View.VISIBLE
-                        Picasso.get()
-                            .load(cachedUser.profileImageUrl)
+                        com.squareup.picasso.Picasso.get().load(cachedUser.profileImageUrl)
                             .into(safeBinding.userProfileImage, object : com.squareup.picasso.Callback {
                                 override fun onSuccess() {
                                     safeBinding.profileProgressBar.visibility = View.GONE
@@ -198,15 +177,11 @@ class SelectedMemoryFragment : Fragment() {
                         val profileImageUrl = document.getString("profileImageUrl") ?: ""
                         val email = document.getString("email") ?: ""
                         val user = User(uid = creatorId, email = email, profileImageUrl = profileImageUrl)
-                        lifecycleScope.launch(Dispatchers.IO) {
-                            val db = AppLocalDb.getDatabase(requireContext())
-                            db.userDao().insertUser(user)
-                        }
+                        viewModel.insertUser(user)
                         binding?.let { safeBinding ->
                             if (profileImageUrl.isNotEmpty()) {
                                 safeBinding.profileProgressBar.visibility = View.VISIBLE
-                                Picasso.get()
-                                    .load(profileImageUrl)
+                                com.squareup.picasso.Picasso.get().load(profileImageUrl)
                                     .into(safeBinding.userProfileImage, object : com.squareup.picasso.Callback {
                                         override fun onSuccess() {
                                             safeBinding.profileProgressBar.visibility = View.GONE
@@ -221,7 +196,7 @@ class SelectedMemoryFragment : Fragment() {
                             }
                         }
                     }
-                    .addOnFailureListener { e ->
+                    .addOnFailureListener {
                         binding?.let { safeBinding ->
                             safeBinding.userProfileImage.setImageResource(R.drawable.ic_profile_placeholder)
                             safeBinding.profileProgressBar.visibility = View.GONE

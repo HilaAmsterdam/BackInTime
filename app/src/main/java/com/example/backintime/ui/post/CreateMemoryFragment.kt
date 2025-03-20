@@ -5,10 +5,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.text.Html
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
@@ -18,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navOptions
 import com.example.backintime.Model.AppLocalDb
 import com.example.backintime.Model.TimeCapsule
 import com.example.backintime.Model.Dao.TimeCapsuleEntity
@@ -26,13 +23,14 @@ import com.example.backintime.api.RetrofitInstance
 import com.example.backintime.databinding.FragmentCreateMemoryBinding
 import com.example.backintime.utils.CloudinaryHelper
 import com.example.backintime.viewModel.ProgressViewModel
+import com.example.backintime.viewModel.TimeCapsuleViewModel
+import com.example.backintime.viewModel.TimeCapsuleViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -42,16 +40,16 @@ class CreateMemoryFragment : Fragment() {
 
     private var _binding: FragmentCreateMemoryBinding? = null
     private val binding get() = _binding
-
     private var capturedImageUri: Uri? = null
-
     private val progressViewModel: ProgressViewModel by activityViewModels()
+    private lateinit var viewModel: TimeCapsuleViewModel
 
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         binding?.let { safeBinding ->
             if (success) {
                 capturedImageUri?.let { uri ->
-                    Picasso.get().load(uri)
+                    Picasso.get()
+                        .load(uri)
                         .placeholder(R.drawable.baseline_account_circle_24)
                         .error(R.drawable.baseline_account_circle_24)
                         .into(safeBinding.imagePreview)
@@ -66,7 +64,8 @@ class CreateMemoryFragment : Fragment() {
         binding?.let { safeBinding ->
             if (uri != null) {
                 capturedImageUri = uri
-                Picasso.get().load(uri)
+                Picasso.get()
+                    .load(uri)
                     .placeholder(R.drawable.baseline_account_circle_24)
                     .error(R.drawable.baseline_account_circle_24)
                     .into(safeBinding.imagePreview)
@@ -74,30 +73,27 @@ class CreateMemoryFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup?, savedInstanceState: Bundle?): android.view.View? {
         _binding = FragmentCreateMemoryBinding.inflate(inflater, container, false)
+        val db = AppLocalDb.getDatabase(requireContext())
+        val repository = com.example.backintime.Repository.TimeCapsuleRepository(db.timeCapsuleDao(), db.userDao())
+        viewModel = androidx.lifecycle.ViewModelProvider(requireActivity(), TimeCapsuleViewModelFactory(repository)).get(TimeCapsuleViewModel::class.java)
         return binding?.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         val safeBinding = binding ?: return
 
         safeBinding.addFromGallaryButton.setOnClickListener {
             pickImageLauncher.launch("image/*")
         }
+
         safeBinding.captureMemoryButton.setOnClickListener {
             val imageFile = createImageFile()
-            capturedImageUri = FileProvider.getUriForFile(
-                requireContext(),
-                "com.example.backintime.fileprovider",
-                imageFile
-            )
+            capturedImageUri = FileProvider.getUriForFile(requireContext(), "com.example.backintime.fileprovider", imageFile)
             takePictureLauncher.launch(capturedImageUri)
         }
+
         safeBinding.memoryDateInput.setOnClickListener {
             showDatePickerDialog()
         }
@@ -125,21 +121,18 @@ class CreateMemoryFragment : Fragment() {
         }
 
         safeBinding.publishMemoryFab.setOnClickListener {
+            safeBinding.publishMemoryFab.isEnabled = false
+
             val title = safeBinding.memoryTitleInput.text?.toString()?.trim() ?: ""
             val caption = safeBinding.memoryCaptionInput.text?.toString()?.trim() ?: ""
             val dateText = safeBinding.memoryDateInput.text?.toString()?.trim() ?: ""
             val selectedEmoji = emojiAutoComplete.text.toString().trim()
 
-            if (title.isEmpty() || caption.isEmpty() || dateText.isEmpty()) {
+            if (title.isEmpty() || caption.isEmpty() || dateText.isEmpty() || selectedEmoji.isEmpty()) {
                 Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                safeBinding.publishMemoryFab.isEnabled = true
                 return@setOnClickListener
             }
-            if (selectedEmoji.isEmpty()) {
-                Toast.makeText(requireContext(), "Please select an emoji", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            Log.d("CreateMemoryFragment", "Selected emoji: [$selectedEmoji]")
-
 
             val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             val openDate = try {
@@ -151,34 +144,69 @@ class CreateMemoryFragment : Fragment() {
             val user = FirebaseAuth.getInstance().currentUser
             if (user == null) {
                 Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+                safeBinding.publishMemoryFab.isEnabled = true
                 return@setOnClickListener
             }
 
-            capturedImageUri?.let { uri ->
+            if (capturedImageUri != null) {
                 progressViewModel.setLoading(true)
-                CloudinaryHelper(requireContext()).uploadImage(
-                    uri,
-                    onSuccess = { imageUrl ->
-                        val capsule = TimeCapsule(
-                            id = "",
-                            title = title,
-                            content = caption,
-                            openDate = openDate,
-                            imageUrl = imageUrl,
-                            creatorName = user.email ?: "",
-                            creatorId = user.uid,
-                            moodEmoji = emojiAutoComplete.text.toString().trim()
-                        )
-                        uploadTimeCapsuleToFirestore(capsule)
-                        progressViewModel.setLoading(false)
-                    },
-                    onFailure = { error ->
-                        Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
-                        progressViewModel.setLoading(false)
-                    }
-                )
-            } ?: run {
+                capturedImageUri?.let { uri ->
+                    CloudinaryHelper(requireContext()).uploadImage(
+                        uri,
+                        onSuccess = { imageUrl ->
+                            val capsule = TimeCapsule(
+                                id = "",
+                                title = title,
+                                content = caption,
+                                openDate = openDate,
+                                imageUrl = imageUrl,
+                                creatorName = user.email ?: "",
+                                creatorId = user.uid,
+                                moodEmoji = selectedEmoji
+                            )
+                            val db = FirebaseFirestore.getInstance()
+                            val docRef = db.collection("time_capsules").document()
+                            capsule.id = docRef.id
+                            docRef.set(capsule)
+                                .addOnSuccessListener {
+                                    Toast.makeText(requireContext(), "Time Capsule created!", Toast.LENGTH_SHORT).show()
+                                    val entity = TimeCapsuleEntity(
+                                        firebaseId = capsule.id,
+                                        title = capsule.title,
+                                        content = capsule.content,
+                                        openDate = capsule.openDate,
+                                        imageUrl = capsule.imageUrl,
+                                        creatorName = capsule.creatorName,
+                                        creatorId = capsule.creatorId,
+                                        notified = false,
+                                        moodEmoji = capsule.moodEmoji
+                                    )
+                                    viewModel.insertCapsule(entity)
+                                    val options = navOptions {
+                                        popUpTo(R.id.createMemoryFragment) {
+                                            inclusive = true
+                                        }
+                                    }
+                                    findNavController().navigate(CreateMemoryFragmentDirections.actionCreateMemoryFragmentToFeedFragment(), options)
+                                    progressViewModel.setLoading(false)
+                                    safeBinding.publishMemoryFab.isEnabled = true
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(requireContext(), "Failed to create Time Capsule: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    progressViewModel.setLoading(false)
+                                    safeBinding.publishMemoryFab.isEnabled = true
+                                }
+                        },
+                        onFailure = { error ->
+                            Toast.makeText(requireContext(), "Image upload error: $error", Toast.LENGTH_SHORT).show()
+                            progressViewModel.setLoading(false)
+                            safeBinding.publishMemoryFab.isEnabled = true
+                        }
+                    )
+                }
+            } else {
                 Toast.makeText(requireContext(), "Please select an image", Toast.LENGTH_SHORT).show()
+                safeBinding.publishMemoryFab.isEnabled = true
             }
         }
     }
@@ -199,37 +227,6 @@ class CreateMemoryFragment : Fragment() {
         )
         datePickerDialog.datePicker.minDate = System.currentTimeMillis()
         datePickerDialog.show()
-    }
-
-    private fun uploadTimeCapsuleToFirestore(capsule: TimeCapsule) {
-        val db = FirebaseFirestore.getInstance()
-        val docRef = db.collection("time_capsules").document()
-        capsule.id = docRef.id
-
-        docRef.set(capsule)
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Time Capsule created!", Toast.LENGTH_SHORT).show()
-                CoroutineScope(Dispatchers.IO).launch {
-                    val localDb = AppLocalDb.getDatabase(requireContext())
-                    localDb.timeCapsuleDao().insertTimeCapsule(
-                        TimeCapsuleEntity(
-                            firebaseId = capsule.id,
-                            title = capsule.title,
-                            content = capsule.content,
-                            openDate = capsule.openDate,
-                            imageUrl = capsule.imageUrl,
-                            creatorName = capsule.creatorName,
-                            creatorId = capsule.creatorId,
-                            moodEmoji = capsule.moodEmoji
-                        )
-                    )
-                }
-                val action = CreateMemoryFragmentDirections.actionCreateMemoryFragmentToFeedFragment()
-                findNavController().navigate(action)
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to create Time Capsule: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
     }
 
     private fun createImageFile(): File {

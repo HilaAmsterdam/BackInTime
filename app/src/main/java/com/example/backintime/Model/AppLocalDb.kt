@@ -8,7 +8,14 @@ import com.example.backintime.Model.Dao.TimeCapsuleDao
 import com.example.backintime.Model.Dao.UserDao
 import com.example.backintime.Model.Dao.TimeCapsuleEntity
 
-@Database(entities = [TimeCapsuleEntity::class, com.example.backintime.Model.User::class], version = 2, exportSchema = false)
+@Database(
+    entities = [
+        TimeCapsuleEntity::class,
+        com.example.backintime.Model.User::class
+    ],
+    version =2,
+    exportSchema = false
+)
 abstract class AppLocalDb : RoomDatabase() {
 
     abstract fun timeCapsuleDao(): TimeCapsuleDao
@@ -25,7 +32,7 @@ abstract class AppLocalDb : RoomDatabase() {
                     AppLocalDb::class.java,
                     "back_in_time_db"
                 )
-                    .fallbackToDestructiveMigration() // rebuilds the DB when schema changes
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
