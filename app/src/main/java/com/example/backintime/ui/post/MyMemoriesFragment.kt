@@ -18,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 class MyMemoriesFragment : Fragment() {
 
@@ -37,16 +38,15 @@ class MyMemoriesFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding?.let { bindingNonNull ->
-            adapter = FeedAdapter(feedItems) { selectedCapsule ->
-                val action = MyMemoriesFragmentDirections.actionMyMemoriesFragmentToSelectedMemoryFragment(selectedCapsule)
-                bindingNonNull.root.findNavController().navigate(action)
-            }
-            bindingNonNull.recyclerViewMyMemories.layoutManager = LinearLayoutManager(requireContext())
-            bindingNonNull.recyclerViewMyMemories.adapter = adapter
-            bindingNonNull.swipeRefreshLayout.setOnRefreshListener {
-                viewModel.loadCapsules()
-            }
+        val bindingNonNull = binding ?: return
+        adapter = FeedAdapter(feedItems) { selectedCapsule ->
+            val action = MyMemoriesFragmentDirections.actionMyMemoriesFragmentToSelectedMemoryFragment(selectedCapsule)
+            bindingNonNull.root.findNavController().navigate(action)
+        }
+        bindingNonNull.recyclerViewMyMemories.layoutManager = LinearLayoutManager(requireContext())
+        bindingNonNull.recyclerViewMyMemories.adapter = adapter
+        bindingNonNull.swipeRefreshLayout.setOnRefreshListener {
+            viewModel.loadCapsules()
         }
         val user = FirebaseAuth.getInstance().currentUser
         if (user == null) {
@@ -80,7 +80,7 @@ class MyMemoriesFragment : Fragment() {
 
     private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
         val items = mutableListOf<FeedItem>()
-        val calendar = Calendar.getInstance().apply {
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jerusalem")).apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
@@ -100,10 +100,9 @@ class MyMemoriesFragment : Fragment() {
         if (futureCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("UPCOMING MEMORIES"))
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("Asia/Jerusalem")
             val groupedUpcoming = futureCapsules.groupBy { dateFormat.format(it.openDate) }
-            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy {
-                dateFormat.parse(it)?.time ?: Long.MAX_VALUE
-            }
+            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
             for (date in sortedUpcomingKeys) {
                 items.add(FeedItem.Header(date))
                 groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
@@ -117,6 +116,7 @@ class MyMemoriesFragment : Fragment() {
 
         return items
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -17,12 +17,10 @@ import com.example.backintime.viewModel.ProgressViewModel
 import com.example.backintime.viewModel.TimeCapsuleViewModel
 import com.example.backintime.viewModel.TimeCapsuleViewModelFactory
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 class FeedFragment : Fragment() {
 
@@ -50,18 +48,15 @@ class FeedFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val currentBinding = binding ?: return
-
         adapter = FeedAdapter(feedItems) { selectedCapsule ->
             val action = FeedFragmentDirections.actionFeedFragmentToSelectedMemoryFragment(selectedCapsule)
             currentBinding.root.findNavController().navigate(action)
         }
         currentBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         currentBinding.recyclerViewFeed.adapter = adapter
-
         currentBinding.swipeRefreshLayout.setOnRefreshListener {
             fetchCapsulesFromFirestore()
         }
-
         fetchCapsulesFromFirestore()
     }
 
@@ -89,7 +84,7 @@ class FeedFragment : Fragment() {
 
     private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
         val items = mutableListOf<FeedItem>()
-        val calendar = Calendar.getInstance().apply {
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jerusalem")).apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
@@ -109,10 +104,9 @@ class FeedFragment : Fragment() {
         if (futureCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("UPCOMING MEMORIES"))
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("Asia/Jerusalem")
             val groupedUpcoming = futureCapsules.groupBy { dateFormat.format(it.openDate) }
-            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy {
-                dateFormat.parse(it)?.time ?: Long.MAX_VALUE
-            }
+            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
             for (date in sortedUpcomingKeys) {
                 items.add(FeedItem.Header(date))
                 groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
@@ -126,6 +120,7 @@ class FeedFragment : Fragment() {
 
         return items
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

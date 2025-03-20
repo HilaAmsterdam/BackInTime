@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 class SelectedMemoryFragment : Fragment() {
 
@@ -78,6 +79,7 @@ class SelectedMemoryFragment : Fragment() {
             safeBinding.memoryDescription.text = memory.content
             safeBinding.memoryEmail.text = memory.creatorName
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("Asia/Jerusalem")
             safeBinding.memoryDate.text = dateFormat.format(memory.openDate)
             if (memory.imageUrl.isNotEmpty()) {
                 safeBinding.memoryProgressBar.visibility = View.VISIBLE
@@ -157,7 +159,7 @@ class SelectedMemoryFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     binding?.let { safeBinding ->
                         safeBinding.profileProgressBar.visibility = View.VISIBLE
-                        com.squareup.picasso.Picasso.get().load(cachedUser.profileImageUrl)
+                        Picasso.get().load(cachedUser.profileImageUrl)
                             .into(safeBinding.userProfileImage, object : com.squareup.picasso.Callback {
                                 override fun onSuccess() {
                                     safeBinding.profileProgressBar.visibility = View.GONE
@@ -181,7 +183,7 @@ class SelectedMemoryFragment : Fragment() {
                         binding?.let { safeBinding ->
                             if (profileImageUrl.isNotEmpty()) {
                                 safeBinding.profileProgressBar.visibility = View.VISIBLE
-                                com.squareup.picasso.Picasso.get().load(profileImageUrl)
+                                Picasso.get().load(profileImageUrl)
                                     .into(safeBinding.userProfileImage, object : com.squareup.picasso.Callback {
                                         override fun onSuccess() {
                                             safeBinding.profileProgressBar.visibility = View.GONE

@@ -1,5 +1,6 @@
 package com.example.backintime.ui.post
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import com.example.backintime.databinding.ItemMemoryBinding
 import com.squareup.picasso.Picasso
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 class FeedAdapter(
     private val items: List<FeedItem>,
@@ -60,7 +62,7 @@ class FeedAdapter(
                 "OPENED MEMORIES", "TODAY MEMORIES", "UPCOMING MEMORIES" -> {
                     headerTitle.text = header.date
                     headerTitle.textSize = 28f
-                    headerTitle.setTextColor(android.graphics.Color.parseColor("#5FB3F9"))
+                    headerTitle.setTextColor(Color.parseColor("#5FB3F9"))
                     headerTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
                     val params = headerTitle.layoutParams as ConstraintLayout.LayoutParams
                     params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -69,6 +71,7 @@ class FeedAdapter(
                 else -> {
                     headerTitle.text = "Open Date is: ${header.date}"
                     headerTitle.textSize = 18f
+                    headerTitle.setTextColor(Color.BLACK)
                     headerTitle.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
                     val params = headerTitle.layoutParams as ConstraintLayout.LayoutParams
                     params.width = 0
@@ -96,9 +99,12 @@ class FeedAdapter(
             }
             binding.memoryTitle.text = capsule.title
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("Asia/Jerusalem")
             binding.memoryDate.text = dateFormat.format(capsule.openDate)
+
             binding.memoryEmail.text = capsule.creatorName
             binding.memoryContent.text = capsule.content
         }
     }
+
 }
