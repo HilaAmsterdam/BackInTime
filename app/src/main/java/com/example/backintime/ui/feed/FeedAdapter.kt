@@ -1,5 +1,6 @@
 package com.example.backintime.ui.post
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -60,7 +61,7 @@ class FeedAdapter(
                 "OPENED MEMORIES", "TODAY MEMORIES", "UPCOMING MEMORIES" -> {
                     headerTitle.text = header.date
                     headerTitle.textSize = 28f
-                    headerTitle.setTextColor(android.graphics.Color.parseColor("#5FB3F9"))
+                    headerTitle.setTextColor(Color.parseColor("#5FB3F9"))
                     headerTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
                     val params = headerTitle.layoutParams as ConstraintLayout.LayoutParams
                     params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -69,6 +70,7 @@ class FeedAdapter(
                 else -> {
                     headerTitle.text = "Open Date is: ${header.date}"
                     headerTitle.textSize = 18f
+                    headerTitle.setTextColor(Color.BLACK)
                     headerTitle.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
                     val params = headerTitle.layoutParams as ConstraintLayout.LayoutParams
                     params.width = 0

@@ -23,6 +23,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 class FeedFragment : Fragment() {
 
@@ -50,18 +51,15 @@ class FeedFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val currentBinding = binding ?: return
-
         adapter = FeedAdapter(feedItems) { selectedCapsule ->
             val action = FeedFragmentDirections.actionFeedFragmentToSelectedMemoryFragment(selectedCapsule)
             currentBinding.root.findNavController().navigate(action)
         }
         currentBinding.recyclerViewFeed.layoutManager = LinearLayoutManager(requireContext())
         currentBinding.recyclerViewFeed.adapter = adapter
-
         currentBinding.swipeRefreshLayout.setOnRefreshListener {
             fetchCapsulesFromFirestore()
         }
-
         fetchCapsulesFromFirestore()
     }
 
@@ -89,7 +87,7 @@ class FeedFragment : Fragment() {
 
     private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
         val items = mutableListOf<FeedItem>()
-        val calendar = Calendar.getInstance().apply {
+        val calendar = Calendar.getInstance(TimeZone.getDefault()).apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
@@ -100,30 +98,25 @@ class FeedFragment : Fragment() {
         val openedCapsules = capsules.filter { it.openDate < todayStart }
         val todayCapsules = capsules.filter { it.openDate in todayStart until tomorrowStart }
         val futureCapsules = capsules.filter { it.openDate >= tomorrowStart }
-
         if (todayCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("TODAY MEMORIES"))
             todayCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
         }
-
         if (futureCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("UPCOMING MEMORIES"))
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getDefault()
             val groupedUpcoming = futureCapsules.groupBy { dateFormat.format(it.openDate) }
-            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy {
-                dateFormat.parse(it)?.time ?: Long.MAX_VALUE
-            }
+            val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
             for (date in sortedUpcomingKeys) {
                 items.add(FeedItem.Header(date))
                 groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
             }
         }
-
         if (openedCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("OPENED MEMORIES"))
             openedCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
         }
-
         return items
     }
 
