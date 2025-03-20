@@ -28,13 +28,12 @@ import com.example.backintime.viewModel.TimeCapsuleViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 class CreateMemoryFragment : Fragment() {
 
@@ -83,21 +82,17 @@ class CreateMemoryFragment : Fragment() {
 
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         val safeBinding = binding ?: return
-
         safeBinding.addFromGallaryButton.setOnClickListener {
             pickImageLauncher.launch("image/*")
         }
-
         safeBinding.captureMemoryButton.setOnClickListener {
             val imageFile = createImageFile()
             capturedImageUri = FileProvider.getUriForFile(requireContext(), "com.example.backintime.fileprovider", imageFile)
             takePictureLauncher.launch(capturedImageUri)
         }
-
         safeBinding.memoryDateInput.setOnClickListener {
             showDatePickerDialog()
         }
-
         val emojiAutoComplete = safeBinding.emojiAutoCompleteTextView
         lifecycleScope.launch {
             try {
@@ -110,42 +105,36 @@ class CreateMemoryFragment : Fragment() {
                 emojiAutoComplete.setAdapter(adapter)
             } catch (e: Exception) { }
         }
-
         emojiAutoComplete.setOnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
                 (view as? AutoCompleteTextView)?.showDropDown()
                 emojiAutoComplete.threshold = 0
             }
         }
-
         safeBinding.publishMemoryFab.setOnClickListener {
             safeBinding.publishMemoryFab.isEnabled = false
-
             val title = safeBinding.memoryTitleInput.text?.toString()?.trim() ?: ""
             val caption = safeBinding.memoryCaptionInput.text?.toString()?.trim() ?: ""
             val dateText = safeBinding.memoryDateInput.text?.toString()?.trim() ?: ""
             val selectedEmoji = emojiAutoComplete.text.toString().trim()
-
             if (title.isEmpty() || caption.isEmpty() || dateText.isEmpty() || selectedEmoji.isEmpty()) {
                 Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 safeBinding.publishMemoryFab.isEnabled = true
                 return@setOnClickListener
             }
-
             val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            sdf.timeZone = TimeZone.getTimeZone("Asia/Jerusalem")
             val openDate = try {
                 sdf.parse(dateText)?.time ?: System.currentTimeMillis()
             } catch (e: Exception) {
                 System.currentTimeMillis()
             }
-
             val user = FirebaseAuth.getInstance().currentUser
             if (user == null) {
                 Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
                 safeBinding.publishMemoryFab.isEnabled = true
                 return@setOnClickListener
             }
-
             if (capturedImageUri != null) {
                 progressViewModel.setLoading(true)
                 capturedImageUri?.let { uri ->

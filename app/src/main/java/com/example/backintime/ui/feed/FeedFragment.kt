@@ -17,9 +17,6 @@ import com.example.backintime.viewModel.ProgressViewModel
 import com.example.backintime.viewModel.TimeCapsuleViewModel
 import com.example.backintime.viewModel.TimeCapsuleViewModelFactory
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -105,7 +102,7 @@ class FeedFragment : Fragment() {
         if (futureCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("UPCOMING MEMORIES"))
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
-            dateFormat.timeZone = TimeZone.getDefault()
+            dateFormat.timeZone = TimeZone.getTimeZone("Asia/Jerusalem")
             val groupedUpcoming = futureCapsules.groupBy { dateFormat.format(it.openDate) }
             val sortedUpcomingKeys = groupedUpcoming.keys.sortedBy { dateFormat.parse(it)?.time ?: Long.MAX_VALUE }
             for (date in sortedUpcomingKeys) {

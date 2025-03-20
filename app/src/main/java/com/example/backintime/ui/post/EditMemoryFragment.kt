@@ -35,6 +35,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 class EditMemoryFragment : Fragment() {
 
@@ -69,7 +70,7 @@ class EditMemoryFragment : Fragment() {
     override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup?, savedInstanceState: Bundle?): android.view.View {
         _binding = FragmentEditMemoryBinding.inflate(inflater, container, false)
         val db = AppLocalDb.getDatabase(requireContext())
-        val repository = com.example.backintime.Repository.TimeCapsuleRepository(db.timeCapsuleDao(), db.userDao())
+        val repository = TimeCapsuleRepository(db.timeCapsuleDao(), db.userDao())
         viewModel = androidx.lifecycle.ViewModelProvider(requireActivity(), TimeCapsuleViewModelFactory(repository)).get(TimeCapsuleViewModel::class.java)
         return binding?.root ?: android.view.View(inflater.context)
     }
@@ -77,12 +78,11 @@ class EditMemoryFragment : Fragment() {
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         val safeBinding = binding ?: return
         val memory: TimeCapsule = args.timeCapsule
-
         safeBinding.editMemoryTitle.setText(memory.title)
         safeBinding.editMemoryDescription.setText(memory.content)
         val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+        sdf.timeZone = TimeZone.getTimeZone("Asia/Jerusalem")
         safeBinding.memoryDateInput.setText(sdf.format(memory.openDate))
-
         if (memory.imageUrl.isNotEmpty()) {
             Picasso.get()
                 .load(memory.imageUrl)
@@ -90,10 +90,8 @@ class EditMemoryFragment : Fragment() {
                 .error(R.drawable.ic_profile_placeholder)
                 .into(safeBinding.editMemoryImage)
         }
-
         val emojiAutoComplete = safeBinding.emojiAutoCompleteTextView
         emojiAutoComplete.setText(memory.moodEmoji, false)
-
         lifecycleScope.launch {
             try {
                 val emojiList = RetrofitInstance.api.getAllEmojis()
@@ -104,7 +102,6 @@ class EditMemoryFragment : Fragment() {
                 emojiAutoComplete.setAdapter(adapter)
             } catch (e: Exception) { }
         }
-
         safeBinding.addFromGalleryButton.setOnClickListener {
             val options = arrayOf("Camera", "Gallery")
             AlertDialog.Builder(requireContext())
@@ -123,33 +120,26 @@ class EditMemoryFragment : Fragment() {
                 }
                 .show()
         }
-
         safeBinding.memoryDateInput.setOnClickListener { showDatePickerDialog() }
-
         safeBinding.updateMemoryButton.setOnClickListener {
             val newTitle = safeBinding.editMemoryTitle.text.toString().trim()
             val newContent = safeBinding.editMemoryDescription.text.toString().trim()
             val dateText = safeBinding.memoryDateInput.text.toString().trim()
-
             if (newTitle.isEmpty() || newContent.isEmpty() || dateText.isEmpty()) {
                 Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
             val openDate = try {
                 sdf.parse(dateText)?.time ?: System.currentTimeMillis()
             } catch (e: Exception) {
                 System.currentTimeMillis()
             }
-
             val selectedEmoji = emojiAutoComplete.text.toString().trim()
             if (selectedEmoji.isEmpty()) {
                 Toast.makeText(requireContext(), "Please select an emoji", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
             progressViewModel.setLoading(true)
-
             if (capturedImageUri != null) {
                 capturedImageUri?.let { uri ->
                     CloudinaryHelper(requireContext()).uploadImage(
