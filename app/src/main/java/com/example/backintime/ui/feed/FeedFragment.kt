@@ -84,7 +84,7 @@ class FeedFragment : Fragment() {
 
     private fun prepareFeedItems(capsules: List<TimeCapsule>): List<FeedItem> {
         val items = mutableListOf<FeedItem>()
-        val calendar = Calendar.getInstance(TimeZone.getDefault()).apply {
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jerusalem")).apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
@@ -95,10 +95,12 @@ class FeedFragment : Fragment() {
         val openedCapsules = capsules.filter { it.openDate < todayStart }
         val todayCapsules = capsules.filter { it.openDate in todayStart until tomorrowStart }
         val futureCapsules = capsules.filter { it.openDate >= tomorrowStart }
+
         if (todayCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("TODAY MEMORIES"))
             todayCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
         }
+
         if (futureCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("UPCOMING MEMORIES"))
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
@@ -110,12 +112,15 @@ class FeedFragment : Fragment() {
                 groupedUpcoming[date]?.sortedBy { it.openDate }?.forEach { items.add(FeedItem.Post(it)) }
             }
         }
+
         if (openedCapsules.isNotEmpty()) {
             items.add(FeedItem.Header("OPENED MEMORIES"))
             openedCapsules.sortedBy { it.openDate }.forEach { items.add(FeedItem.Post(it)) }
         }
+
         return items
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
