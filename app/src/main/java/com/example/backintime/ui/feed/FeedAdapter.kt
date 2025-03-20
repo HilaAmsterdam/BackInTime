@@ -14,6 +14,7 @@ import com.example.backintime.databinding.ItemMemoryBinding
 import com.squareup.picasso.Picasso
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 class FeedAdapter(
     private val items: List<FeedItem>,
@@ -98,9 +99,12 @@ class FeedAdapter(
             }
             binding.memoryTitle.text = capsule.title
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("Asia/Jerusalem")
             binding.memoryDate.text = dateFormat.format(capsule.openDate)
+
             binding.memoryEmail.text = capsule.creatorName
             binding.memoryContent.text = capsule.content
         }
     }
+
 }
